@@ -9,6 +9,7 @@ import (
 	"github.com/mariogarzac/tecpool/pkg/render"
 )
 
+// Creates a repo with the app configuration passed from main
 var Repo *Repository
 
 type Repository struct {

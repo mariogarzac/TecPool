@@ -12,10 +12,11 @@ import (
 func routes(app *config.AppConfig) http.Handler {
     mux := chi.NewRouter()
 
-
+    // middleware
     mux.Use(middleware.Recoverer)
     mux.Use(SessionLoad)
 
+    // routes
     mux.Get("/", http.HandlerFunc(handlers.Repo.Home))
     mux.Get("/login", http.HandlerFunc(handlers.Repo.Login))
     mux.Post("/login", http.HandlerFunc(handlers.Repo.PostLogin))

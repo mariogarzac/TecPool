@@ -17,6 +17,7 @@ var app config.AppConfig
 
 func main(){
 
+    // set app configuration for cookies, cache and sessions
     app.UseCache = true
     app.Session = scs.New()
     app.Session.Lifetime = 24 * time.Hour
@@ -24,8 +25,10 @@ func main(){
     app.Session.Cookie.SameSite = http.SameSiteLaxMode
 
 
+    // render the templates
     tc, err := render.CreateTemplateCache()
 
+    // check if templates were rendered correctly
     if err != nil {
         log.Fatal("Cannot create template cache: ", err)
     }
@@ -33,11 +36,13 @@ func main(){
     // used to test if templates are being rendered 
     app.TemplateCache = tc
 
+    // passes app configuration and templates to handlers
     repo := handlers.NewRepo(&app)
     handlers.NewHandlers(repo)
 
     render.NewTemplates(&app)
 
+    // start the server with the port number and indicate where routes are
     srv := &http.Server {
         Addr: portNumber,
         Handler: routes(&app),

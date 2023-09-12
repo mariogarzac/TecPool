@@ -1,5 +1,6 @@
 package models
 
+// Makes it easier to pass maps around
 type TemplateData struct {
     StringMap map[string]string
     IntMap map[int]int
