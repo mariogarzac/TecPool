@@ -7,6 +7,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/mariogarzac/tecpool/pkg/config"
+	"github.com/mariogarzac/tecpool/pkg/db"
 	"github.com/mariogarzac/tecpool/pkg/handlers"
 	"github.com/mariogarzac/tecpool/pkg/render"
 )
@@ -41,6 +42,9 @@ func main(){
     handlers.NewHandlers(repo)
 
     render.NewTemplates(&app)
+
+    db.InitDB("tecpooladmin:tecpoolapp@tcp(localhost:3306)/TecPool")
+    app.DataBase = db.GetDB()
 
     // start the server with the port number and indicate where routes are
     srv := &http.Server {
