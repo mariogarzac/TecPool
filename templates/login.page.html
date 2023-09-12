@@ -12,8 +12,8 @@
                     <div class="col">
                         <div class="form-row" id="login">
                             <div class="col-md-6">
-                                <label for="username">Username:</label>
-                                <input required class ="form-control" type="text" name="username" required>
+                                <label for="email">Email:</label>
+                                <input required class ="form-control" type="text" name="email" required>
                             </div>
 
                             <div class="col-md-6">
@@ -28,7 +28,16 @@
 
                 <hr>
 
-                <button type="submit" class="btn btn-primary">Login</button>
+                {{index .StringMap "error_msg"}}
+                <div class="row">
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+
+                    <div class="col-md-1">
+                        <a href="/register" type="button" class="btn btn-primary"> Register</a>
+                    </div>
+                </div>
             </form>
 
         </div>
