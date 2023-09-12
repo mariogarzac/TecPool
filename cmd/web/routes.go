@@ -18,6 +18,10 @@ func routes(app *config.AppConfig) http.Handler {
 
     // routes
     mux.Get("/", http.HandlerFunc(handlers.Repo.Home))
+
+    mux.Get("/register", http.HandlerFunc(handlers.Repo.Register))
+    mux.Post("/register", http.HandlerFunc(handlers.Repo.PostRegister))
+
     mux.Get("/login", http.HandlerFunc(handlers.Repo.Login))
     mux.Post("/login", http.HandlerFunc(handlers.Repo.PostLogin))
 
