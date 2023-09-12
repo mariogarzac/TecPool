@@ -1,10 +1,11 @@
 package main
 
 import (
-	// "fmt"
-	// "net/http"
+    "net/http"
 )
 
-// func printHi(next http.Handler) {
-//     fmt.Println("Hi from mw")
-// }
+// SessionLoad loads and saves session data for current request
+func SessionLoad(next http.Handler) http.Handler {
+    return app.Session.LoadAndSave(next)
+}
+

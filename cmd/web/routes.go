@@ -1,23 +1,27 @@
 package main
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"net/http"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/mariogarzac/tecpool/pkg/config"
 	"github.com/mariogarzac/tecpool/pkg/handlers"
 )
 
-func serveAndRoute(){
+func routes(app *config.AppConfig) http.Handler {
+    mux := chi.NewRouter()
 
-    // echo instance
-    e := echo.New()
 
-    // middleware
-    e.Use(middleware.Recover())
-    e.Use(middleware.Logger())
+    mux.Use(middleware.Recoverer)
+    mux.Use(SessionLoad)
 
-    // route
-    e.GET("/",handlers.Repo.Login)
+    mux.Get("/", http.HandlerFunc(handlers.Repo.Home))
+    mux.Get("/login", http.HandlerFunc(handlers.Repo.Login))
+    mux.Post("/login", http.HandlerFunc(handlers.Repo.PostLogin))
 
-    // start server
-    e.Start(portNumber)
+    // fileServer := http.FileServer(http.Dir("./static/"))
+    // mux.Handle("/static/*", http.StripPrefix("/static",fileServer))
+
+    return mux
 }

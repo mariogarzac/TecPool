@@ -7,19 +7,18 @@
             <h1>Login</h1>
 
             <form action="/login" method="post" novalidate class="needs-validation">
-                <input type="hidden" id="csrf_token" value="{{.CSRFToken}}">
 
                 <div class="form-row">
                     <div class="col">
                         <div class="form-row" id="login">
                             <div class="col-md-6">
                                 <label for="username">Username:</label>
-                                <input required class ="form-control" type="text" name="username" id="username" required>
+                                <input required class ="form-control" type="text" name="username" required>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="password">Password:</label>
-                                <input required class ="form-control" type="password" name="password" id="password" required>
+                                <input required class ="form-control" type="password" name="password" required>
 
                             </div>
 
