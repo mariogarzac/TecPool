@@ -59,6 +59,8 @@ func (m *Repository)PostRegister(w http.ResponseWriter, r *http.Request) {
         http.Redirect(w, r, "/login", http.StatusSeeOther)
     }
 
+func (m *Repository)Dashboard(w http.ResponseWriter, r *http.Request) {
+    render.RenderTemplate(w, r, "dashboard.page.html", &models.TemplateData{})
 }
 
 func (m *Repository)Login(w http.ResponseWriter, r *http.Request) {
