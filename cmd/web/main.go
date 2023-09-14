@@ -25,7 +25,6 @@ func main(){
     app.Session.Cookie.Persist = true
     app.Session.Cookie.SameSite = http.SameSiteLaxMode
 
-
     // render the templates
     tc, err := render.CreateTemplateCache()
 

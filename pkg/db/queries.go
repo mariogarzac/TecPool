@@ -73,3 +73,17 @@ func ValidateUserInfo(email, password string) error {
 
     return nil
 }
+
+func GetNameByEmail(email string) (string, error ) {
+    var name string
+    stmt := "select fname from users where email = ?"
+    row := db.QueryRow(stmt, email)
+    err = row.Scan(&name)
+
+    if err != nil {
+        log.Println("Error getting the user's name ", err)
+        return name, err
+    }
+
+    return name, nil
+}
