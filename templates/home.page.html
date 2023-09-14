@@ -1,10 +1,25 @@
 {{template "base" .}}
 
-<h1>This is a Test</h1>
-<p>
-KALKSDFJALSKDFJLASDF
-AKLSDJFLKASDJFLK
-ASKDLFJALKSDJFL
-ADLKSFJALSKDFJAKLSDFJKLJDASKLFJASKLJL
-</p>
+<h1>TecPool</h1>
+
+<div class="container">
+
+    <div class="row">
+        <div class="col">
+            <p>
+            {{if eq .StringMap nil}}
+                Please login or register
+            {{else}}
+                Hi {{index .StringMap "name"}}
+            {{end}}
+            </p>
+        </div>
+    </div>
+
+    <p>
+    We are trying to connect you to other students looking for a ride to the <br>
+    Tecnologico de Monterrey.
+    </p>
+</div>
+
 
