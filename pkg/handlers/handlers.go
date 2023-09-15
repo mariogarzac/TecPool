@@ -27,22 +27,26 @@ func NewHandlers(r *Repository){
     Repo = r
 }
 
+// Renders the home page
 func (m *Repository)Home(w http.ResponseWriter, r *http.Request) {
     var stringMap = map[string]string{}
 
-    isLogged := m.App.Session.GetBool(r.Context(), "is_logged_in")
-    if isLogged {
+    isLoggedIn := m.App.Session.GetBool(r.Context(), "isLoggedIn")
+    // Check if user is logged in
+    if isLoggedIn {
 
         stringMap["name"] = m.App.Session.GetString(r.Context(), "name")
 
+        // Renders user dashboard
         render.RenderTemplate(w, r, "home.page.html", &models.TemplateData{
             StringMap: stringMap,
+            IsLoggedIn: isLoggedIn, 
         })
 
     }else{
-        stringMap["name"] = "Register or Login"
+        // Renders homepage with login or register buttons
         render.RenderTemplate(w, r, "home.page.html", &models.TemplateData{
-            StringMap: stringMap,
+            IsLoggedIn: isLoggedIn, 
         })
         log.Println("User not logged in")
     }
@@ -64,10 +68,10 @@ func (m *Repository)PostRegister(w http.ResponseWriter, r *http.Request) {
 
     // try to add the user to the database and return an error if it fails
     err := db.RegisterUser(fname, lname, pass, phone, email, dob)
+    stringMap := map[string]string{}
 
     if err != nil {
         // render the register template with an error message
-        stringMap := map[string]string{}
         stringMap["error_msg"] = "Error creating your account"
         render.RenderTemplate(w, r, "register.page.html", &models.TemplateData{
             StringMap: stringMap,
@@ -80,8 +84,9 @@ func (m *Repository)PostRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository)Login(w http.ResponseWriter, r *http.Request) {
-    // check if the user is already logged in
-    isLogged := m.App.Session.GetBool(r.Context(), "is_logged_in")
+    // check if the user is already logged in if they are, it will display the Login
+    // if they are not, the login form will be presented
+    isLogged := m.App.Session.GetBool(r.Context(), "isLoggedIn")
     if isLogged {
         log.Println("Redirecting to dashboard")
         http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -116,6 +121,7 @@ func (m *Repository)PostLogin(w http.ResponseWriter, r *http.Request) {
     }else{
         // get the user's name by their email
         name, err := db.GetNameByEmail(email)
+        userId, err := db.GetUserId(email)
 
         if err != nil {
             // log the error
@@ -132,21 +138,35 @@ func (m *Repository)PostLogin(w http.ResponseWriter, r *http.Request) {
         }
 
         // set cookie to logged in
-        m.App.Session.Put(r.Context(), "is_logged_in", true)
+        m.App.Session.Put(r.Context(), "isLoggedIn", true)
         m.App.Session.Put(r.Context(), "name", name)
+        m.App.Session.Put(r.Context(), "userId", userId)
 
         // save cookie to db
 
-        if  err != nil {
-            log.Println("Error saving session to db ", err)
-            return
-        }
+        // if  err != nil {
+        //     log.Println("Error saving session to db ", err)
+        //     return
+        // }
 
         // redirect to the dashboard
+        log.Println("Log in success")
         http.Redirect(w, r, "/", http.StatusSeeOther)
     }
 }
 
 func (m *Repository)CreateTrip(w http.ResponseWriter, r *http.Request){
+    render.RenderTemplate(w, r, "create-trip.page.html", &models.TemplateData{})
+}
 
+func (m *Repository)PostCreateTrip(w http.ResponseWriter, r *http.Request){
+    carModel :=  r.FormValue("car_model")
+    licensePlate := r.FormValue("plate") 
+    departureTime := r.FormValue("departure_time")
+    userId := m.App.Session.GetInt(r.Context(), "userId")
+
+    db.CreateTrip(carModel, licensePlate, departureTime, userId)
+
+    // render.RenderTemplate(w, r, "create-trip.page.html", &models.TemplateData{})
+    http.Redirect(w, r, "/", http.StatusSeeOther)
 }

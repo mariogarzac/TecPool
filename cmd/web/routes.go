@@ -25,6 +25,9 @@ func routes(app *config.AppConfig) http.Handler {
     mux.Get("/login", http.HandlerFunc(handlers.Repo.Login))
     mux.Post("/login", http.HandlerFunc(handlers.Repo.PostLogin))
 
+    mux.With(IsLoggedIn).Get("/create-trip", http.HandlerFunc(handlers.Repo.CreateTrip))
+    mux.With(IsLoggedIn).Post("/create-trip", http.HandlerFunc(handlers.Repo.PostCreateTrip))
+
     // fileServer := http.FileServer(http.Dir("./static/"))
     // mux.Handle("/static/*", http.StripPrefix("/static",fileServer))
 
