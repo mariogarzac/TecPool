@@ -13,7 +13,7 @@ import (
 )
 
 
-const portNumber = ":3001"
+const portNumber = ":8080"
 var app config.AppConfig
 
 func main(){

@@ -80,6 +80,7 @@ func (m *Repository)PostRegister(w http.ResponseWriter, r *http.Request) {
         // Render the login page on a success
         http.Redirect(w, r, "/login", http.StatusSeeOther)
     }
+}
 
 func (m *Repository)Dashboard(w http.ResponseWriter, r *http.Request) {
     render.RenderTemplate(w, r, "dashboard.page.html", &models.TemplateData{})
