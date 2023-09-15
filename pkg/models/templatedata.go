@@ -9,4 +9,5 @@ type TemplateData struct {
     FloatMap map[float32]float32
     Data map[string]interface{}
     Forms *forms.Form
+    IsLoggedIn bool
 }
