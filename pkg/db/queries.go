@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"golang.org/x/crypto/bcrypt"
@@ -69,7 +68,60 @@ func ValidateUserInfo(email, password string) error {
         return err
     }
 
-    fmt.Println("Login success")
+    return nil
+}
+
+func GetNameByEmail(email string) (string, error) {
+    var name string
+    stmt := "SELECT fname FROM users WHERE email = ?"
+    row := db.QueryRow(stmt, email)
+    err = row.Scan(&name)
+
+    if err != nil {
+        log.Println("Error getting the user's name ", err)
+        return name, err
+    }
+
+    return name, nil
+}
+
+func GetUserId(email string) (int, error) {
+    var userId int
+
+    stmt := "SELECT user_id FROM users WHERE email = ?"
+    row := db.QueryRow(stmt, email)
+    err = row.Scan(&userId)
+
+    
+    if err != nil {
+        return userId, err
+    }
+
+    return userId, nil
+}
+
+func CreateTrip(carModel, licensePlate, departureTime string, userId int) error {
+    
+    // insert user into table
+    var insert *sql.Stmt
+
+    insert, err := db.Prepare("INSERT into `Trips` (`car_model`, `license_plate`, `departure_time`, `user_id`) VALUE (?, ?, ?, ?)")
+    if err != nil {
+        log.Println("Error preparing query", err)
+    }
+    defer insert.Close()
+
+    if err != nil {
+        log.Println("Error creating ride", err)
+        return err
+    }
+
+    _, err = insert.Exec(carModel, licensePlate, departureTime, userId)
+
+    if err != nil {
+        log.Println("Error inserting data" , err)
+        return err
+    }
 
     return nil
 }
@@ -83,4 +135,3 @@ func GetRecentTrips() (*sql.Rows, error) {
     }
     return rows, nil
 }
-

@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"net/http"
+    "log"
+    "net/http"
 
-	"github.com/mariogarzac/tecpool/pkg/config"
-	"github.com/mariogarzac/tecpool/pkg/db"
-	"github.com/mariogarzac/tecpool/pkg/models"
-	"github.com/mariogarzac/tecpool/pkg/render"
+    "github.com/mariogarzac/tecpool/pkg/config"
+    "github.com/mariogarzac/tecpool/pkg/db"
+    "github.com/mariogarzac/tecpool/pkg/models"
+    "github.com/mariogarzac/tecpool/pkg/render"
 )
 
 // Creates a repo with the app configuration passed from main
@@ -26,6 +27,7 @@ func NewHandlers(r *Repository){
     Repo = r
 }
 
+// Renders the home page
 func (m *Repository)Home(w http.ResponseWriter, r *http.Request) {
     var stringMap = map[string]string{}
 
@@ -66,10 +68,10 @@ func (m *Repository)PostRegister(w http.ResponseWriter, r *http.Request) {
 
     // try to add the user to the database and return an error if it fails
     err := db.RegisterUser(fname, lname, pass, phone, email, dob)
+    stringMap := map[string]string{}
 
     if err != nil {
         // render the register template with an error message
-        stringMap := map[string]string{}
         stringMap["error_msg"] = "Error creating your account"
         render.RenderTemplate(w, r, "register.page.html", &models.TemplateData{
             StringMap: stringMap,
@@ -78,6 +80,7 @@ func (m *Repository)PostRegister(w http.ResponseWriter, r *http.Request) {
         // Render the login page on a success
         http.Redirect(w, r, "/login", http.StatusSeeOther)
     }
+}
 
 // func (m *Repository)Dashboard(w http.ResponseWriter, r *http.Request) {
 //     render.RenderTemplate(w, r, "dashboard.page.html", &models.TemplateData{})
@@ -97,17 +100,60 @@ func (m *Repository)Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository)PostLogin(w http.ResponseWriter, r *http.Request) {
+
+    // get values from form
     email := r.FormValue("email")
     password := r.FormValue("password")
+
+    // check if the user exits in the db
     err := db.ValidateUserInfo(email, password)
 
+    stringMap := map[string]string{}
+
     if err != nil{
-        stringMap := map[string]string{}
+        // log the error
+        log.Println("Wrong username or password", err)
+
+        // set an error message for if the username or password are wrong
         stringMap["error_msg"] = "Wrong username or password"
+
+        // render the template with the error message
         render.RenderTemplate(w, r, "login.page.html", &models.TemplateData{
             StringMap: stringMap,
         })
     }else{
+        // get the user's name by their email
+        name, err := db.GetNameByEmail(email)
+        userId, err := db.GetUserId(email)
+
+        if err != nil {
+            // log the error
+            log.Println("Error getting the user's name ", err)
+
+            // set an error message for if the username or password are wrong
+            stringMap["error_msg"] = "An error occured please try again"
+
+            // render the template with the error message
+            render.RenderTemplate(w, r, "login.page.html", &models.TemplateData{
+                StringMap: stringMap,
+            })
+            return
+        }
+
+        // set cookie to logged in
+        m.App.Session.Put(r.Context(), "isLoggedIn", true)
+        m.App.Session.Put(r.Context(), "name", name)
+        m.App.Session.Put(r.Context(), "userId", userId)
+
+        // save cookie to db
+
+        // if  err != nil {
+        //     log.Println("Error saving session to db ", err)
+        //     return
+        // }
+
+        // redirect to the dashboard
+        log.Println("Log in success")
         http.Redirect(w, r, "/", http.StatusSeeOther)
     }
 }

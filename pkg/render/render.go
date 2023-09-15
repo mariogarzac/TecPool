@@ -87,6 +87,8 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 			}
 		}
 
+        log.Println(name)
+
 		cache[name] = ts
 	}
 
