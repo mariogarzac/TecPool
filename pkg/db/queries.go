@@ -73,3 +73,14 @@ func ValidateUserInfo(email, password string) error {
 
     return nil
 }
+
+//Fetch most recent trips
+func GetRecentTrips() (*sql.Rows, error) {
+    stmt := "SELECT * FROM Trips ORDER BY trip_id DESC LIMIT 4"
+    rows, err := db.Query(stmt)
+    if err != nil {
+        return nil, err
+    }
+    return rows, nil
+}
+
