@@ -10,25 +10,32 @@ import (
 )
 
 func routes(app *config.AppConfig) http.Handler {
-    mux := chi.NewRouter()
+	mux := chi.NewRouter()
 
-    // middleware
-    mux.Use(middleware.Recoverer)
-    mux.Use(SessionLoad)
+	// middleware
+	mux.Use(middleware.Recoverer)
+	mux.Use(SessionLoad)
 
-    // routes
-    mux.Get("/", http.HandlerFunc(handlers.Repo.Home))
-    mux.Post("/register", http.HandlerFunc(handlers.Repo.PostRegister))
+	// Serve static files
+	fileServer := http.FileServer(http.Dir("/templates/static"))
+	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
-    mux.Get("/dashboard", http.HandlerFunc(handlers.Repo.Dashboard))
-    mux.Get("/login", http.HandlerFunc(handlers.Repo.Login))
-    mux.Post("/login", http.HandlerFunc(handlers.Repo.PostLogin))
+	// routes
+	mux.Get("/", http.HandlerFunc(handlers.Repo.Home))
+	mux.Post("/register", http.HandlerFunc(handlers.Repo.PostRegister))
 
-    mux.With(IsLoggedIn).Get("/create-trip", http.HandlerFunc(handlers.Repo.CreateTrip))
-    mux.With(IsLoggedIn).Post("/create-trip", http.HandlerFunc(handlers.Repo.PostCreateTrip))
+	mux.Get("/dashboard", http.HandlerFunc(handlers.Repo.Dashboard))
+	mux.Get("/login", http.HandlerFunc(handlers.Repo.Login))
+	mux.Post("/login", http.HandlerFunc(handlers.Repo.PostLogin))
 
-    // fileServer := http.FileServer(http.Dir("./static/"))
-    // mux.Handle("/static/*", http.StripPrefix("/static",fileServer))
+	mux.With(IsLoggedIn).Get("/create-trip", http.HandlerFunc(handlers.Repo.CreateTrip))
+	mux.With(IsLoggedIn).Post("/create-trip", http.HandlerFunc(handlers.Repo.PostCreateTrip))
 
-    return mux
+	// Add the new route for searching trips by departure_time
+	mux.Post("/searchTrips", http.HandlerFunc(handlers.Repo.SearchTripsHandler))
+
+	// fileServer := http.FileServer(http.Dir("./static/"))
+	// mux.Handle("/static/*", http.StripPrefix("/static",fileServer))
+
+	return mux
 }
