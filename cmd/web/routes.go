@@ -21,7 +21,8 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
 	// routes
-	mux.Get("/", http.HandlerFunc(handlers.Repo.Home))
+	mux.Get("/", http.HandlerFunc(handlers.Repo.Dashboard))
+    mux.Get("/register", http.HandlerFunc(handlers.Repo.Register))
 	mux.Post("/register", http.HandlerFunc(handlers.Repo.PostRegister))
 
 	mux.Get("/dashboard", http.HandlerFunc(handlers.Repo.Dashboard))

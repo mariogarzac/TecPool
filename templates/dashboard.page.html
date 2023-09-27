@@ -22,7 +22,15 @@
                 <a href="#" class="hover:text-gray-300">Viajes</a>
                 <a href="#" class="hover:text-gray-300">Contacto</a>
             </nav>
-            <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</button>
+            <!-- <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</button> -->
+
+            <!-- Shows user's where login button would be -->
+            {{if .IsLoggedIn}}
+                {{index .StringMap "name"}}
+            {{else}}
+                <a href="/login"type="button" class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</a> 
+            {{end}}
+
         </div>
     </header>
 
