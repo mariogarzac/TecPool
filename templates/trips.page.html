@@ -1,0 +1,16 @@
+{{template "base".}}
+
+{{define "content"}}
+<div>
+    {{ range .Trips }}
+
+    <img src="/static/driver_placeholder.png" alt="Foto del conductor"
+    class="h-24 w-24 rounded-full mx-auto mb-4">
+    <p class="font-medium text-center mb-2">Car Model: {{ .car_model }}</p>
+    <p class="text-center mb-2">License Plate: {{ .license_plate }}</p>
+    <p class="text-center">Departure Time: {{ .departure_time }}</p>
+
+    {{end}}
+</div>
+
+{{end}}

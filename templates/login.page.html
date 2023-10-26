@@ -1,48 +1,33 @@
+
 {{template "base" .}}
 
 {{define "content"}}
-<div class="container">
-    <div class="row mt-3">
-        <div class="col">
-            <h1>Login</h1>
 
-            <form action="/login" method="post" novalidate class="needs-validation">
+<div>
+    <div class="flex items-center justify-center min-w-full min-h-screen">
 
-                <div class="form-row">
-                    <div class="col">
-                        <div class="form-row" id="login">
-                            <div class="col-md-6">
-                                <label for="email">Email:</label>
-                                <input required class ="form-control" type="text" name="email" required>
-                            </div>
+        <form action="/login" method="post" class="flex flex-col md:w-1/5">
+            <div class="text-3xl font-bold text-center">
+                <span class="text-blue">Welcome!</span>
+            </div>
 
-                            <div class="col-md-6">
-                                <label for="password">Password:</label>
-                                <input required class ="form-control" type="password" name="password" required>
+            <input 
+            name="email"
+            type="email"
+            placeholder="email" 
+            value="mariogarzac99@gmail.com"
+            class="p-3 mt-8 rounded-md border-2 border-grey focus:outline-none focus:border-blue"/>
 
-                            </div>
+            <input 
+            name="password"
+            type="password" 
+            placeholder="password" 
+            value="password"
+            class="p-3 mt-4 rounded-md border-2 border-grey focus:outline-none focus:border-blue"/>
 
-                        </div>
-                    </div>
-                </div>
-
-                <hr>
-
-                {{index .StringMap "error_msg"}}
-                <div class="row">
-                    <div class="col-md-1">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-
-                    <div class="col-md-1">
-                        <a href="/register" type="button" class="btn btn-primary"> Register</a>
-                    </div>
-                </div>
-            </form>
-
-        </div>
+            <button type="submit" class="p-3 mt-6 rounded-md bg-blue font-bold text:white"> login </button>
+        </form>
     </div>
 </div>
 
 {{end}}
-
