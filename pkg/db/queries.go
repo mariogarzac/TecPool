@@ -136,6 +136,20 @@ func GetRecentTrips() (*sql.Rows, error) {
 	return rows, nil
 }
 
+func GetTripID() (int, error) {
+    var tripId int
+    stmt := "SELECT trip_id FROM trips ORDER BY trip_id DESC LIMIT 1"
+
+    row := db.QueryRow(stmt)
+	err = row.Scan(&tripId)
+
+	if err != nil {
+		return 0, err
+	}
+    
+    return tripId, nil
+}
+
 // SearchTripsByDepartureTime fetches trips from the database that match the given departure time
 func SearchTripsByDepartureTime(departureTime time.Time) (*sql.Rows, error) {
 	// Convert the departureTime to a string in the format YYYY-MM-DD HH:MM:SS
