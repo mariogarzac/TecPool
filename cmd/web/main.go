@@ -37,7 +37,8 @@ func main() {
 	app.TemplateCache = tc
 
 	// passes app configuration and templates to handlers
-	repo := handlers.NewRepo(&app)
+    tripMap := make(map[int]*handlers.Rooms)
+	repo := handlers.NewRepo(&app, tripMap)
 	handlers.NewHandlers(repo)
 
 	render.NewTemplates(&app)
