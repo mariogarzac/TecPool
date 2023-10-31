@@ -9,6 +9,12 @@ import (
     "github.com/mariogarzac/tecpool/pkg/render"
 )
 
+var UserMap map[int]*User
+
+func NewUserMap() map[int]*User {
+    return make(map[int]*User)
+}
+
 func (m *Repository) Register(w http.ResponseWriter, r *http.Request) {
     render.RenderTemplate(w, r, "register.page.html", &models.TemplateData{})
 }
@@ -46,7 +52,7 @@ func (m *Repository) Login(w http.ResponseWriter, r *http.Request) {
     if isLogged {
         log.Println("Redirecting to dashboard")
         http.Redirect(w, r, "/", http.StatusSeeOther)
-
+        return
     } else {
         render.RenderTemplate(w, r, "login.page.html", &models.TemplateData{})
     }
@@ -58,12 +64,10 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
     email := r.FormValue("email")
     password := r.FormValue("password")
 
-    log.Println(email, password)
 
     // check if the user exits in the db
-    err := db.ValidateUserInfo(email, password)
-
     stringMap := map[string]string{}
+    err := db.ValidateUserInfo(email, password)
 
     if err != nil {
         // log the error
@@ -79,8 +83,7 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
     } 
 
     // get the user's name by their email
-    name, err := db.GetNameByEmail(email)
-    userId, err := db.GetUserId(email)
+    userId, err := db.GetUserIDByEmail(email)
 
     if err != nil {
         // log the error
@@ -99,8 +102,6 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
     // set cookie to logged in
     m.App.Session.Put(r.Context(), "isLoggedIn", true)
     m.App.Session.Put(r.Context(), "userId", userId)
-    m.App.Session.Put(r.Context(), "name", name)
-    m.App.Session.Put(r.Context(), "email", email)
 
     // save cookie to db
 
