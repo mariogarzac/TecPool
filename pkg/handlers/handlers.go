@@ -80,9 +80,16 @@ func (m *Repository) Dashboard(w http.ResponseWriter, r *http.Request) {
 	// Check if user is logged in
 	if isLoggedIn {
 
-		stringMap["name"] = m.App.Session.GetString(r.Context(), "name")
+		// Renders user dashboard with their name
+        userId := m.App.Session.GetInt(r.Context(), "userId")
+        name, err := db.GetNameByID(userId)
 
-		// Renders user dashboard
+        if err != nil {
+            log.Println("Error getting user's name: ", err)
+            return
+        }
+
+        stringMap["name"] = name
 		render.RenderTemplate(w, r, "dashboard.page.html", &models.TemplateData{
 			StringMap:  stringMap,
 			IsLoggedIn: isLoggedIn,
@@ -90,8 +97,8 @@ func (m *Repository) Dashboard(w http.ResponseWriter, r *http.Request) {
 		})
 
 	} else {
-		// Renders homepage with login or register buttons
-		render.RenderTemplate(w, r, "home.page.html", &models.TemplateData{
+		// Renders login page
+		render.RenderTemplate(w, r, "login.page.html", &models.TemplateData{
 			IsLoggedIn: isLoggedIn,
 		})
 	}
