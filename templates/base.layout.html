@@ -1,10 +1,18 @@
 {{define "base"}}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
     <head>
         <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
+        <title>TecPool Dashboard</title>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+
+        {{block "title" .}}
+
+        {{end}}
+
         <script src="https://cdn.tailwindcss.com"></script>
 
         {{ block "css" .}}
@@ -12,7 +20,28 @@
         {{end}}
 
     </head>
-    <body>
+
+    <body class="bg-gray-100">
+        <header class="bg-blue-600 text-white p-4">
+            <div class="container mx-auto flex justify-between items-center">
+                <img src="/static/tecpool_logo.png" alt="Logo de TecPool" class="h-10">
+                <nav class="space-x-4">
+                    <a href="/" class="hover:text-gray-300">Inicio</a>
+                    <a href="#" class="hover:text-gray-300">Acerca de</a>
+                    <a href="/trips" class="hover:text-gray-300">Viajes</a>
+                    <a href="#" class="hover:text-gray-300">Contacto</a>
+                </nav>
+                <!-- <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</button> -->
+
+                <!-- Shows user where login button would be -->
+                {{if .IsLoggedIn}}
+                {{index .StringMap "name"}}
+                {{else}}
+                <a href="/login"type="button" class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</a> 
+                {{end}}
+
+            </div>
+        </header>
         {{block "content" .}}
 
         {{end}}
@@ -20,7 +49,23 @@
         {{block "js" .}}
 
         {{end}}
-    </body>
+        <!-- Pie de Página (Footer) -->
+        <footer class="bg-blue-600 text-white p-4 mt-16">
+            <div class="container mx-auto flex justify-between items-center">
+                <p>Información de contacto: contacto@tecpool.com</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-gray-300">Facebook</a>
+                    <a href="#" class="hover:text-gray-300">Twitter</a>
+                </div>
+                <div>
+                    <a href="#" class="hover:text-gray-300">Política de privacidad</a>
+                    <span class="mx-2">|</span>
+                    <a href="#" class="hover:text-gray-300">Términos de servicio</a>
+                </div>
+            </div>
+        </footer>
+
+        </body>
 </html>
 {{end}}
 

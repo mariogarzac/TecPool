@@ -1,16 +1,27 @@
 {{template "base".}}
 
 {{define "content"}}
-<div>
-    {{ range .Trips }}
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {{ range .UserTrips }}
 
-    <img src="/static/driver_placeholder.png" alt="Foto del conductor"
-    class="h-24 w-24 rounded-full mx-auto mb-4">
-    <p class="font-medium text-center mb-2">Car Model: {{ .car_model }}</p>
-    <p class="text-center mb-2">License Plate: {{ .license_plate }}</p>
-    <p class="text-center">Departure Time: {{ .departure_time }}</p>
+    <!-- /ws/chat/tripid-->
+    <a href="">
+        <div class="bg-white p-2 rounded shadow-md mt-2 mb-2 flex items-center transition-transform hover:scale-105 hover:shadow-lg">
+            <!-- Image container -->
+            <div class="mr-4">
+                <!-- la imagen viene de un api -->
+                <img src="" alt="Car Image" class="w-12 h-12 rounded-full">
+            </div>
+            <!-- Text container -->
+            <div>
+                <p class="font-medium"> {{ .CarModel }} </p>
+                <p class="font-medium"> {{ .LicensePlate }} </p>
+                <p class="font-medium"> {{ .Date }} | {{ .Time }} </p>
+            </div>
+        </div>
+    </a>
 
     {{end}}
 </div>
-
 {{end}}
+

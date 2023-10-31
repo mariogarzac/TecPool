@@ -11,4 +11,5 @@ type TemplateData struct {
     Forms *forms.Form
     IsLoggedIn bool
     Trips []map[string]interface{}
+    UserTrips map[int]*Trip
 }

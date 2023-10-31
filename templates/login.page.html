@@ -1,33 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
 
-{{template "base" .}}
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login</title>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
 
-{{define "content"}}
+        <script src="https://cdn.tailwindcss.com"></script>
 
-<div>
-    <div class="flex items-center justify-center min-w-full min-h-screen">
+    </head>
 
-        <form action="/login" method="post" class="flex flex-col md:w-1/5">
-            <div class="text-3xl font-bold text-center">
-                <span class="text-blue">Welcome!</span>
+    <body class="bg-gray-100">
+        <div>
+            <div class="flex items-center justify-center min-w-full min-h-screen">
+
+                <form action="/login" method="post" class="flex flex-col md:w-1/5">
+                    <div class="text-3xl font-bold text-center">
+                        <span class="text-blue">Welcome!</span>
+                    </div>
+
+                    <input 
+                    name="email"
+                    type="email"
+                    placeholder="email" 
+                    value="mariogarzac99@gmail.com"
+                    class="p-3 mt-8 rounded-md border-2 border-grey focus:outline-none focus:border-blue"/>
+
+                    <input 
+                    name="password"
+                    type="password" 
+                    placeholder="password" 
+                    value="password"
+                    class="p-3 mt-4 rounded-md border-2 border-grey focus:outline-none focus:border-blue"/>
+
+                    <button type="submit" class="p-3 mt-6 rounded-md bg-blue font-bold text:white"> login </button>
+                </form>
             </div>
+        </div>
 
-            <input 
-            name="email"
-            type="email"
-            placeholder="email" 
-            value="mariogarzac99@gmail.com"
-            class="p-3 mt-8 rounded-md border-2 border-grey focus:outline-none focus:border-blue"/>
-
-            <input 
-            name="password"
-            type="password" 
-            placeholder="password" 
-            value="password"
-            class="p-3 mt-4 rounded-md border-2 border-grey focus:outline-none focus:border-blue"/>
-
-            <button type="submit" class="p-3 mt-6 rounded-md bg-blue font-bold text:white"> login </button>
-        </form>
-    </div>
-</div>
-
-{{end}}
+    </body>
+</html>
