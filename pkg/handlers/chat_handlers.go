@@ -4,12 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
-	"github.com/go-chi/chi"
-	"github.com/mariogarzac/tecpool/pkg/db"
-	"github.com/mariogarzac/tecpool/pkg/models"
-	"github.com/mariogarzac/tecpool/pkg/render"
+    "github.com/mariogarzac/tecpool/pkg/db"
 	"golang.org/x/net/websocket"
 )
 
@@ -25,23 +21,22 @@ type Rooms struct {
     Broadcast chan []byte
 }
 
-func (m *Repository) CreateRoom(w http.ResponseWriter, r *http.Request) {
+// Creates the room for the trip. This adds the trip to memory
+func (m *Repository) CreateTripRoom(w http.ResponseWriter, r *http.Request) {
 
     // Get name and email from cookies
-    name := m.App.Session.GetString(r.Context(), "name")
-    email := m.App.Session.GetString(r.Context(), "email")
+    userId := m.App.Session.GetInt(r.Context(), "userId")
+
+    name, err := db.GetNameByID(userId)
+    if err != nil {
+        log.Println("Error getting name ", err)
+        return
+    }
 
     // Get tripId from DB
     tripId, err := db.GetTripID()
     if err != nil {
         log.Fatal("Error getting tripId: ", err)
-    }
-
-    // Get userId from DB
-    userId, err := db.GetUserId(email)
-
-    if err != nil {
-        log.Fatal("Error getting userId: ", err)
     }
 
     // Create User and Room to add to the TripMap
@@ -60,58 +55,8 @@ func (m *Repository) CreateRoom(w http.ResponseWriter, r *http.Request) {
     m.TripMap[tripId] = room
 }
 
-func (m *Repository) JoinTrip(w http.ResponseWriter, r *http.Request){
 
-    // Get id from the url and turn cast it into an int
-    id := chi.URLParam(r, "tripId")
-    tripId,err := strconv.Atoi(id)
 
-    if err != nil {
-        log.Println("Error getting tripId ", err)
-    }
-
-    // Get user info from cookies
-    // TODO: Should change to userId
-    name := m.App.Session.GetString(r.Context(), "name")
-    email := m.App.Session.GetString(r.Context(), "email")
-
-    if err != nil {
-        log.Fatal("Error getting tripId: ", err)
-    }
-
-    // Get userId from email
-    userId, err := db.GetUserId(email)
-    if err != nil {
-        log.Println("Error getting userId: ", err)
-        return
-    }
-
-    // Check if the trip exists
-    if _, exists := m.TripMap[tripId]; !exists {
-        log.Println("Room does not exist")
-        return
-    }
-
-    // Check if user is already in the trip
-    if _, inRoom := m.TripMap[tripId].Users[userId]; inRoom {
-        log.Println("User is already in the room")
-        return
-    }
-    
-    // Add user to trip and redirect to dashboard
-    // TODO: Add to database as well
-    m.TripMap[tripId].Users[userId] = &User{
-        Name:   name,
-        UserID: userId,
-    }
-
-    http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func (m *Repository) ActiveTrips(w http.ResponseWriter, r *http.Request){
-
-    render.RenderTemplate(w, r, "trips.page.html", &models.TemplateData{})
-}
 
 func (m *Repository) printTrips(){
     for tripID, room := range m.TripMap {
