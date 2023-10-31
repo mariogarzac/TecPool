@@ -21,7 +21,7 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Handle("/static/*", http.StripPrefix("/static/", fileServer))
 
 	// routes
-	mux.Get("/", http.HandlerFunc(handlers.Repo.Dashboard))
+	mux.With(IsLoggedIn).Get("/", http.HandlerFunc(handlers.Repo.Dashboard))
 
     mux.Get("/register", http.HandlerFunc(handlers.Repo.Register))
 	mux.Post("/register", http.HandlerFunc(handlers.Repo.PostRegister))
@@ -32,12 +32,12 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.With(IsLoggedIn).Get("/create-trip", http.HandlerFunc(handlers.Repo.CreateTrip))
 	mux.With(IsLoggedIn).Post("/create-trip", http.HandlerFunc(handlers.Repo.PostCreateTrip))
 
-	mux.Get("/join-trip/{tripId}", http.HandlerFunc(handlers.Repo.JoinTrip))
+	mux.With(IsLoggedIn).Get("/join-trip/{tripId}", http.HandlerFunc(handlers.Repo.JoinTrip))
 
-	mux.Get("/trips", http.HandlerFunc(handlers.Repo.ActiveTrips))
+	mux.With(IsLoggedIn).Get("/trips", http.HandlerFunc(handlers.Repo.ActiveTrips))
 
 	// Add the new route for searching trips by departure_time
-	mux.Post("/searchTrips", http.HandlerFunc(handlers.Repo.SearchTripsHandler))
+	mux.With(IsLoggedIn).Post("/searchTrips", http.HandlerFunc(handlers.Repo.SearchTripsHandler))
 
 
 	return mux
