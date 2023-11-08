@@ -1,12 +1,28 @@
 package main
 
 import (
-    "net/http"
+	"context"
+	"net/http"
 )
 
 // SessionLoad loads and saves session data for current request
 func SessionLoad(next http.Handler) http.Handler {
     return app.Session.LoadAndSave(next)
+}
+
+func NameMiddleWare(r http.Request) {
+}
+func NameMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Extract the user's name from the cookie or your session
+        name := app.Session.GetString(r.Context(), "name")
+
+        // Set the name to the request context
+        ctx := context.WithValue(r.Context(), "user_name", name)
+
+        // Call the next handler with the updated context
+        next.ServeHTTP(w, r.WithContext(ctx))
+    })
 }
 
 // checks if the user is logged in to prevent them from accessing parts that 

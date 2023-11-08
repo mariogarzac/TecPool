@@ -43,6 +43,19 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mod
     // executes the template data before running to check for any errors
     buf := new(bytes.Buffer)
 
+
+    // Get loggin status
+    td.IsLoggedIn = app.Session.GetBool(r.Context(), "isLoggedIn")
+
+    // Check if the stringmap is nil and if so, create it
+    if td.StringMap == nil || td.StringMap["name"] == "" {
+        stringMap := make(map[string]string)
+        td.StringMap = stringMap
+    }
+    
+
+    // Add the name to the StringMap
+    td.StringMap["name"] = app.Session.GetString(r.Context(), "name")
     td = AddDefautlData(td)
 
     err := t.Execute(buf, td)
@@ -86,8 +99,6 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 				return cache, err
 			}
 		}
-
-        log.Println(name)
 
 		cache[name] = ts
 	}

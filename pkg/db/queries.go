@@ -207,7 +207,10 @@ func IsUserInTrip(tripId, userId int) bool {
 }
 func GetUserTrips(userId int) (map[int]*models.Trip, error){
 
-    stmt := "SELECT * FROM Trips WHERE user_id = ? ORDER BY trip_id"
+    stmt := `SELECT t.trip_id, t.car_model, t.departure_time, t.user_id, t.license_plate 
+             FROM trips as t, trip_participants as tp
+             WHERE tp.trip_id = t.trip_id 
+             AND tp.user_id = ?;`
 
     rows, err := db.Query(stmt, userId)
     if err != nil {
@@ -215,7 +218,7 @@ func GetUserTrips(userId int) (map[int]*models.Trip, error){
         return nil, err
     }
 
-    tripMap, err := ProcessTrips(rows)
+    tripMap, err := ProcessTrips(rows, userId)
     if err != nil {
         log.Println("An error occured while parsing rows: ", err)
         return tripMap, err
@@ -224,7 +227,7 @@ func GetUserTrips(userId int) (map[int]*models.Trip, error){
     return tripMap, nil
 }
 
-func ProcessTrips(rows *sql.Rows) (map[int]*models.Trip, error) {
+func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
     // close rows when done
     defer rows.Close() 
 
@@ -260,7 +263,7 @@ func ProcessTrips(rows *sql.Rows) (map[int]*models.Trip, error) {
             CarModel: carModel,
             Date: date,
             Time: time,
-            UserID: userId,
+            UserID: uid,
             LicensePlate: licensePlate,
         }
 

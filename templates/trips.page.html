@@ -1,11 +1,11 @@
-{{template "base".}}
+{{ template "base". }}
 
-{{define "content"}}
+{{ define "content" }}
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
     {{ range .UserTrips }}
 
-    <!-- /ws/chat/tripid-->
-    <a href="">
+    <!-- /ws/chat/tripid/userid-->
+    <a href="/chat/{{.TripID}}/{{.UserID}}">
         <div class="bg-white p-2 rounded shadow-md mt-2 mb-2 flex items-center transition-transform hover:scale-105 hover:shadow-lg">
             <!-- Image container -->
             <div class="mr-4">
@@ -22,6 +22,10 @@
     </a>
 
     {{end}}
+
 </div>
 {{end}}
 
+{{ define "js" }}
+
+{{end}}

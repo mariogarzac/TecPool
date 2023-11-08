@@ -35,9 +35,9 @@
 
                 <!-- Shows user where login button would be -->
                 {{if .IsLoggedIn}}
-                {{index .StringMap "name"}}
+                    {{index .StringMap "name"}}
                 {{else}}
-                <a href="/login"type="button" class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</a> 
+                    <a href="/login"type="button" class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</a> 
                 {{end}}
 
             </div>
@@ -65,7 +65,7 @@
             </div>
         </footer>
 
-        </body>
+    </body>
 </html>
 {{end}}
 

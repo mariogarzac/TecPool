@@ -1,0 +1,63 @@
+{{template "base" .}}
+
+{{define "content" }}
+<div id="chat-container" data-trip-id="{{ index .StringIntMap "tripId" }}" data-user-id="{{ index .StringIntMap "userId" }}">
+    <div id="messages"></div>
+    <input type="text" id="message-input" placeholder="Type your message">
+    <button id="send-button">Send</button>
+</div>
+{{end}}
+
+{{define "js"}}
+<script>
+    // Get elements
+    const chatContainer = document.getElementById('chat-container');
+    const tripId = chatContainer.getAttribute('data-trip-id')
+    const userId = chatContainer.getAttribute('data-user-id')
+
+    const messagesDiv = document.getElementById('messages');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+
+    // Create websocket connection
+    const socket = new WebSocket(`ws://localhost:3001/ws/chat/${tripId}/${userId}`);
+
+    // Event listener for sending a message
+    sendButton.addEventListener('click', function() {
+        const message = messageInput.value;
+        socket.send(message);
+        messageInput.value = '';
+    });
+
+    // Send message with Enter key
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendButton.click();
+        }
+    });
+
+    // Handling incoming messages
+    socket.onmessage = function(event) {
+        const message = event.data;
+        const messageElement = document.createElement('div');
+        messageElement.textContent = message;
+        messagesDiv.appendChild(messageElement);
+    };
+
+    // Handling WebSocket closure
+    socket.onclose = function(event) {
+        if (event.wasClean) {
+            alert(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+        } else {
+            // e.g., server process killed or network down
+            alert('Connection died');
+        }
+    };
+
+    // Handling WebSocket errors
+    socket.onerror = function(error) {
+        alert(`[error] ${error.message}`);
+    };
+</script>
+{{end}}
+

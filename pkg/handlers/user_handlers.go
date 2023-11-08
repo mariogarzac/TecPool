@@ -9,12 +9,6 @@ import (
     "github.com/mariogarzac/tecpool/pkg/render"
 )
 
-var UserMap map[int]*User
-
-func NewUserMap() map[int]*User {
-    return make(map[int]*User)
-}
-
 func (m *Repository) Register(w http.ResponseWriter, r *http.Request) {
     render.RenderTemplate(w, r, "register.page.html", &models.TemplateData{})
 }
@@ -99,9 +93,16 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+
+    name,err := db.GetNameByID(userId)
+    if err != nil {
+        log.Println("Error getting name by id: ", err)
+        return 
+    }
     // set cookie to logged in
     m.App.Session.Put(r.Context(), "isLoggedIn", true)
     m.App.Session.Put(r.Context(), "userId", userId)
+    m.App.Session.Put(r.Context(), "name", name)
 
     // save cookie to db
 

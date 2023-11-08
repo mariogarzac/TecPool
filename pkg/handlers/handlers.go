@@ -15,13 +15,13 @@ var Repo *Repository
 
 type Repository struct {
 	App *config.AppConfig
-    TripMap map[int]*Rooms
+    Server *Server
 }
 
-func NewRepo(a *config.AppConfig, t map[int]*Rooms) *Repository {
+func NewRepo(a *config.AppConfig, s *Server) *Repository {
 	return &Repository{
 		App: a,
-        TripMap: t,
+        Server: s,
 	}
 }
 
@@ -74,32 +74,24 @@ func (m *Repository) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var stringMap = map[string]string{}
 
 	isLoggedIn := m.App.Session.GetBool(r.Context(), "isLoggedIn")
 	// Check if user is logged in
 	if isLoggedIn {
 
 		// Renders user dashboard with their name
-        userId := m.App.Session.GetInt(r.Context(), "userId")
-        name, err := db.GetNameByID(userId)
-
         if err != nil {
             log.Println("Error getting user's name: ", err)
             return
         }
 
-        stringMap["name"] = name
 		render.RenderTemplate(w, r, "dashboard.page.html", &models.TemplateData{
-			StringMap:  stringMap,
-			IsLoggedIn: isLoggedIn,
             Trips: trips,
 		})
 
 	} else {
 		// Renders login page
 		render.RenderTemplate(w, r, "login.page.html", &models.TemplateData{
-			IsLoggedIn: isLoggedIn,
-		})
+	})
 	}
 }

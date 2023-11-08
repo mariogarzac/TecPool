@@ -36,10 +36,13 @@ func main() {
 	// used to test if templates are being rendered
 	app.TemplateCache = tc
 
-	// passes app configuration and templates to handlers
-    tripMap := make(map[int]*handlers.Rooms)
-	repo := handlers.NewRepo(&app, tripMap)
+	// passes app configuration, templates and chat hub to handlers
+    server := handlers.NewServer()
+	repo := handlers.NewRepo(&app, server)
+    
+
 	handlers.NewHandlers(repo)
+    // go handlers.Repo.Hub.Run()
 
 	render.NewTemplates(&app)
 
