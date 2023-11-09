@@ -1,25 +1,31 @@
 package handlers
 
 import (
-	"io"
-	"log"
-	"net/http"
-	"strconv"
+    "io"
+    "log"
+    "net/http"
+    "strconv"
 
-	"github.com/go-chi/chi"
-	"github.com/mariogarzac/tecpool/pkg/models"
-	"github.com/mariogarzac/tecpool/pkg/render"
-	"golang.org/x/net/websocket"
+    "github.com/go-chi/chi"
+    "github.com/mariogarzac/tecpool/pkg/models"
+    "github.com/mariogarzac/tecpool/pkg/render"
+    "golang.org/x/net/websocket"
 )
 
-type Server struct {
-   conns map[*websocket.Conn]bool
+type Hub struct {
+    conns map[*websocket.Conn]bool
 }
 
-func NewServer() *Server {
-    return &Server{
+func NewHub() *Hub {
+    return &Hub{
         conns: make(map[*websocket.Conn]bool),
     }
+}
+
+type Message struct {
+    Message string `json:"message"`
+    UserID string `json:"userId"`
+    Self bool `json:"self"`
 }
 
 func (m *Repository)RenderChat(w http.ResponseWriter, r *http.Request) {
@@ -28,51 +34,66 @@ func (m *Repository)RenderChat(w http.ResponseWriter, r *http.Request) {
     userId := chi.URLParam(r, "userId")
 
     uid, _ := strconv.Atoi(userId)
-    
+
     tripId := chi.URLParam(r, "tripId")
     tid, _ := strconv.Atoi(tripId)
 
     stintMap["userId"] = uid
     stintMap["tripId"] = tid
 
-    log.Println(userId, tripId)
-
     render.RenderTemplate(w, r, "chat.page.html", &models.TemplateData{
-         StringIntMap: stintMap,
+        StringIntMap: stintMap,
     })
 }
 
-func (s *Server) HandleWs(ws *websocket.Conn) {
+func (s *Hub) HandleWs(ws *websocket.Conn) {
     log.Println("New connection from ", ws.RemoteAddr())
 
     s.conns[ws] = true
-
     s.readLoop(ws)
 }
 
-func (s *Server)readLoop(ws *websocket.Conn) {
-    buf := make([]byte, 1024)
+func (s *Hub)readLoop(ws *websocket.Conn) {
+
+    var messageData map[string]string
     for {
-        n, err := ws.Read(buf)
+        err := websocket.JSON.Receive(ws, &messageData)
 
         if err != nil {
-            if err == io.ErrUnexpectedEOF {
-                break
+            if err == io.EOF {
+                // The client closed the connection
+                log.Println("Client closed the connection")
+                return
+            } else {
+                return
             }
-            log.Println(err)
-            return 
         }
 
-        msg := buf[:n]
+        msg := messageData["message"]
+        userId := messageData["userId"]
 
-        s.broadcast(msg)
+        s.broadcast(msg, ws, userId)
     }
 }
 
-func (s *Server)broadcast(b []byte) {
+func (s *Hub)broadcast(b string, sender *websocket.Conn, userId string) {
+    log.Println(b)
     for ws := range s.conns {
+        jsonMsg := &Message{
+            Message: b,
+            UserID: userId,
+            Self: ws == sender,
+        }
+
+        encodedMsg, _, err := websocket.JSON.Marshal(jsonMsg)
+        if err != nil {
+            log.Printf("Error encoding JSON message: %v", err)
+            return
+        }
+
         go func(ws *websocket.Conn) {
-            if _, err := ws.Write(b); err != nil {
+            // send the json message to the front end here
+            if _, err := ws.Write(encodedMsg); err != nil {
                 return 
             }
         }(ws)

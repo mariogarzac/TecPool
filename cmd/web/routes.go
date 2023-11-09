@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-func routes(app *config.AppConfig) http.Handler {
+func routes(app *config.AppConfig, s *handlers.Hub) http.Handler {
     mux := chi.NewRouter()
 
     // middleware
@@ -40,7 +40,7 @@ func routes(app *config.AppConfig) http.Handler {
 
     mux.With(IsLoggedIn).Get("/join-trip/{tripId}", http.HandlerFunc(handlers.Repo.JoinTrip))
 
-    mux.With(IsLoggedIn).Handle("/ws/chat/{tripId}/{userId}", websocket.Handler(handlers.Repo.Server.HandleWs))
+    mux.With(IsLoggedIn).Handle("/ws/chat/{tripId}/{userId}", websocket.Handler(s.HandleWs))
     mux.With(IsLoggedIn).Get("/chat/{tripId}/{userId}", handlers.Repo.RenderChat)
 
     return mux

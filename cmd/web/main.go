@@ -36,13 +36,12 @@ func main() {
 	// used to test if templates are being rendered
 	app.TemplateCache = tc
 
-	// passes app configuration, templates and chat hub to handlers
-    server := handlers.NewServer()
-	repo := handlers.NewRepo(&app, server)
-    
+	// passes app configuration, templates 
+    repo := handlers.NewRepo(&app)
+
+    chatHub := handlers.NewHub()
 
 	handlers.NewHandlers(repo)
-    // go handlers.Repo.Hub.Run()
 
 	render.NewTemplates(&app)
 
@@ -52,7 +51,7 @@ func main() {
 	// start the server with the port number and indicate where routes are
 	srv := &http.Server{
 		Addr:    portNumber,
-		Handler: routes(&app),
+		Handler: routes(&app, chatHub),
 	}
 
 	err = srv.ListenAndServe()

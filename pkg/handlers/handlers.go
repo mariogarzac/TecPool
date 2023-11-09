@@ -15,13 +15,11 @@ var Repo *Repository
 
 type Repository struct {
 	App *config.AppConfig
-    Server *Server
 }
 
-func NewRepo(a *config.AppConfig, s *Server) *Repository {
+func NewRepo(a *config.AppConfig) *Repository {
 	return &Repository{
 		App: a,
-        Server: s,
 	}
 }
 

@@ -1,63 +1,126 @@
-{{template "base" .}}
+<!DOCTYPE html>
+<html lang="es">
 
-{{define "content" }}
-<div id="chat-container" data-trip-id="{{ index .StringIntMap "tripId" }}" data-user-id="{{ index .StringIntMap "userId" }}">
-    <div id="messages"></div>
-    <input type="text" id="message-input" placeholder="Type your message">
-    <button id="send-button">Send</button>
-</div>
-{{end}}
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TecPool Dashboard</title>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
 
-{{define "js"}}
-<script>
-    // Get elements
-    const chatContainer = document.getElementById('chat-container');
-    const tripId = chatContainer.getAttribute('data-trip-id')
-    const userId = chatContainer.getAttribute('data-user-id')
 
-    const messagesDiv = document.getElementById('messages');
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
+        <script src="https://cdn.tailwindcss.com"></script>
 
-    // Create websocket connection
-    const socket = new WebSocket(`ws://localhost:3001/ws/chat/${tripId}/${userId}`);
+    </head>
 
-    // Event listener for sending a message
-    sendButton.addEventListener('click', function() {
-        const message = messageInput.value;
-        socket.send(message);
-        messageInput.value = '';
-    });
 
-    // Send message with Enter key
-    messageInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendButton.click();
-        }
-    });
+    <body>
 
-    // Handling incoming messages
-    socket.onmessage = function(event) {
-        const message = event.data;
-        const messageElement = document.createElement('div');
-        messageElement.textContent = message;
-        messagesDiv.appendChild(messageElement);
-    };
+        <div class="flex flex-col h-screen">
+            <div id="chat-title" class="flex-shrink-0 bg-gray-200 p-5 text-3xl">
+                Title
+            </div>
 
-    // Handling WebSocket closure
-    socket.onclose = function(event) {
-        if (event.wasClean) {
-            alert(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`);
-        } else {
-            // e.g., server process killed or network down
-            alert('Connection died');
-        }
-    };
+            <div id="messages-container" class="flex-grow overflow-y-auto" 
+                data-trip-id="{{ index .StringIntMap "tripId" }}" 
+                data-user-id="{{ index .StringIntMap "userId" }}"
+                >
+                <!-- Messages will go here -->
+            </div>
 
-    // Handling WebSocket errors
-    socket.onerror = function(error) {
-        alert(`[error] ${error.message}`);
-    };
-</script>
-{{end}}
+            <div class="flex-shrink-0 bg-gray-200 p-2 flex items-center">
+                <input type="text" id="message-input" placeholder="Type your message" class="flex-grow px-4 py-2 mr-2 border rounded">
+                <button id="send-button" class="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
+            </div>
+        </div>
+
+
+    </body>
+
+    <script>
+        // Get elements
+        const messagesContainer = document.getElementById('messages-container');
+        const tripId = messagesContainer.getAttribute('data-trip-id');
+        const userId = messagesContainer.getAttribute('data-user-id');
+
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        // Create websocket connection
+        const socket = new WebSocket(`ws://localhost:3001/ws/chat/${tripId}/${userId}`);
+
+        // Event listener for sending a message
+        sendButton.addEventListener('click', function() {
+            const message = messageInput.value;
+
+            const messageData = {
+                userId : userId,
+                message: message,
+            }
+
+            const jsonMessage = JSON.stringify(messageData)
+
+            socket.send(jsonMessage)
+
+            messageInput.value = '';
+        });
+
+        // Send message with Enter key
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        // Handling incoming messages
+        socket.onmessage = function(event) {
+            const jsonMessage = JSON.parse(event.data);
+
+            // Create a div element for the message
+            const messageElement = document.createElement('div');
+
+            // Check if the message is from the user or another participant
+            if (jsonMessage.self) {
+                // Style the user's messages on the right side with a blue bubble
+                messageElement.classList.add('flex', 'flex-row-reverse', 'items-end', 'mb-2', 'pt-2', 'mr-2');
+                messageElement.innerHTML = `
+                    <div class="bg-blue-500 text-white px-4 py-2 rounded-lg">
+                    ${jsonMessage.message}
+                    </div>
+                    `;
+            } else {
+                // Style other participants' messages on the left side with a grey bubble
+                messageElement.classList.add('flex', 'items-start', 'mb-2', 'pt-2', 'ml-2');
+                messageElement.innerHTML = `
+                    <div class="bg-gray-300 text-black px-4 py-2 rounded-lg">
+                    ${jsonMessage.message}
+                    </div>
+                    `;
+            }
+
+            // Append the message element to the messagesContainer
+            messagesContainer.appendChild(messageElement);
+
+            // Scroll the messagesContainer to the bottom to show the latest message
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
+
+        // Handling WebSocket closure
+        socket.onclose = function(event) {
+            if (event.wasClean) {
+                alert(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+            } else {
+                // e.g., server process killed or network down
+                alert('Connection died');
+            }
+        };
+
+        // Handling WebSocket errors
+        socket.onerror = function(error) {
+            alert(`[error] ${error.message}`);
+        };
+    </script>
+
+
+</html>
 
