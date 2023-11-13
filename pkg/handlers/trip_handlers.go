@@ -35,7 +35,11 @@ func (m *Repository) PostCreateTrip(w http.ResponseWriter, r *http.Request) {
         return 
     }
 
-    db.AddUserToTrip(uint64(userId), uint64(tripId))
+    err  = db.AddUserToTrip(uint64(userId), uint64(tripId))
+    if err != nil {
+        log.Println("Error adding user to trip:", err)
+        return 
+    }
 
     // create a chat room with that trip id
     // m.CreateTripRoom(w, r)
