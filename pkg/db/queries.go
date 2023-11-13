@@ -135,6 +135,9 @@ func GetRecentTrips() (*sql.Rows, error) {
     if err != nil {
         return nil, err
     }
+
+    defer rows.Close()
+
     return rows, nil
 }
 
@@ -164,6 +167,9 @@ func SearchTripsByDepartureTime(departureTime time.Time) (*sql.Rows, error) {
     if err != nil {
         return nil, err
     }
+
+    defer rows.Close()
+
     return rows, nil
 }
 
@@ -208,15 +214,17 @@ func IsUserInTrip(tripId, userId int) bool {
 func GetUserTrips(userId int) (map[int]*models.Trip, error){
 
     stmt := `SELECT t.trip_id, t.car_model, t.departure_time, t.user_id, t.license_plate 
-             FROM trips as t, trip_participants as tp
-             WHERE tp.trip_id = t.trip_id 
-             AND tp.user_id = ?;`
+    FROM trips as t, trip_participants as tp
+    WHERE tp.trip_id = t.trip_id 
+    AND tp.user_id = ?;`
 
     rows, err := db.Query(stmt, userId)
     if err != nil {
         log.Println("Error querying row: ", err)
         return nil, err
     }
+
+    defer rows.Close()
 
     tripMap, err := ProcessTrips(rows, userId)
     if err != nil {
@@ -286,6 +294,7 @@ func AddUserToTrip(userId, tripId uint64) error {
 
     if err != nil {
         log.Println("Error preparing query", err)
+        return err
     }
     defer insert.Close()
 
@@ -297,4 +306,103 @@ func AddUserToTrip(userId, tripId uint64) error {
     }
 
     return nil
+}
+
+
+func SaveMessage(tripId, userId int, msg string) error {
+    // Check if the chat exists
+    stmt := "SELECT * FROM chats WHERE chat_id = ?"
+    row := db.QueryRow(stmt, tripId)
+
+    var chatID int
+    var tripID int
+    if err := row.Scan(&chatID, &tripID); err != nil {
+        if err == sql.ErrNoRows{
+            // Chat doesn't exist, create it
+            insertChat, err := db.Prepare("INSERT INTO `chats` (chat_id, trip_id) VALUES (?, ?)")
+            if err != nil {
+                log.Println("Error preparing chat insert query:", err)
+                return err
+            }
+            defer insertChat.Close()
+
+            _, err = insertChat.Exec(tripId, tripId)
+            if err != nil {
+                log.Println("Error inserting chat into db:", err)
+                return err
+            }
+        } else {
+            log.Println("Error checking chat existence:", err)
+            return err
+        }
+    }
+
+    // Insert the message
+    insertMessage, err := db.Prepare("INSERT INTO `messages` (chat_id, user_id, message) VALUES (?, ?, ?)")
+    if err != nil {
+        log.Println("Error preparing message insert query:", err)
+        return err
+    }
+    defer insertMessage.Close()
+
+    _, err = insertMessage.Exec(tripId, userId, msg)
+    if err != nil {
+        log.Println("Error inserting message into db:", err)
+        return err
+    }
+
+    return nil
+}
+
+func LoadMessages(tripId, uid int) ([]*models.Message, error) {
+
+    loadedMessages := make([]*models.Message ,0)
+
+    stmt := `SELECT m.chat_id, m.user_id, m.message, m.time FROM messages as m
+    LEFT JOIN chats as c ON m.chat_id = c.trip_id
+    WHERE m.chat_id = ?
+    ORDER BY m.time DESC`
+
+    rows, err := db.Query(stmt, tripId)
+    if err != nil {
+        log.Println("Error querying row: ", err)
+        return nil, err
+    }
+
+    for rows.Next() {
+        var (
+            chatId int 
+            userId int 
+            message string 
+            time []uint8
+        )
+
+        if err := rows.Scan(&chatId, &userId, &message, &time); err != nil {
+            log.Println("Error scanning rows: ", err)
+            return loadedMessages, err
+        }
+
+        if err != nil {
+            log.Println("Error parsing time: ", err)
+            return loadedMessages, err
+        }
+
+        msg := models.Message{
+            Message: message,
+            UserID: userId,
+            ChatID: chatId,
+            Time: time,
+            Self: userId == uid,
+        }
+
+        loadedMessages= append(loadedMessages, &msg)
+
+    }
+
+    if err := rows.Err(); err != nil {
+        log.Println("Error while exiting loop: ", err)
+        return loadedMessages, err
+    }
+
+    return loadedMessages, nil
 }
