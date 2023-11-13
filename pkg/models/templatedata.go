@@ -1,6 +1,8 @@
 package models
 
-import "github.com/mariogarzac/tecpool/pkg/forms"
+import (
+	"github.com/mariogarzac/tecpool/pkg/forms"
+)
 
 // Makes it easier to pass maps around
 type TemplateData struct {
@@ -13,4 +15,5 @@ type TemplateData struct {
     IsLoggedIn bool
     Trips []map[string]interface{}
     UserTrips map[int]*Trip
+    Messages []*Message
 }
