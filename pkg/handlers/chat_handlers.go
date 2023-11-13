@@ -1,15 +1,17 @@
 package handlers
 
 import (
-    "io"
-    "log"
-    "net/http"
-    "strconv"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"strconv"
 
-    "github.com/go-chi/chi"
-    "github.com/mariogarzac/tecpool/pkg/models"
-    "github.com/mariogarzac/tecpool/pkg/render"
-    "golang.org/x/net/websocket"
+	"github.com/go-chi/chi"
+	"github.com/mariogarzac/tecpool/pkg/db"
+	"github.com/mariogarzac/tecpool/pkg/models"
+	"github.com/mariogarzac/tecpool/pkg/render"
+	"golang.org/x/net/websocket"
 )
 
 type Hub struct {
@@ -22,27 +24,31 @@ func NewHub() *Hub {
     }
 }
 
-type Message struct {
-    Message string `json:"message"`
-    UserID string `json:"userId"`
-    Self bool `json:"self"`
-}
 
 func (m *Repository)RenderChat(w http.ResponseWriter, r *http.Request) {
 
     stintMap := make(map[string]int)
-    userId := chi.URLParam(r, "userId")
 
+    userId := chi.URLParam(r, "userId")
     uid, _ := strconv.Atoi(userId)
 
     tripId := chi.URLParam(r, "tripId")
     tid, _ := strconv.Atoi(tripId)
 
-    stintMap["userId"] = uid
     stintMap["tripId"] = tid
+    stintMap["userId"] = uid
+
+    tid,_ = strconv.Atoi(tripId)
+    messages,_ := db.LoadMessages(tid, uid)
+
+    for _, msg := range messages {
+        fmt.Println(msg.Self)
+    }
+
 
     render.RenderTemplate(w, r, "chat.page.html", &models.TemplateData{
         StringIntMap: stintMap,
+        Messages: messages,
     })
 }
 
@@ -71,19 +77,32 @@ func (s *Hub)readLoop(ws *websocket.Conn) {
 
         msg := messageData["message"]
         userId := messageData["userId"]
+        tripId := messageData["tripId"]
 
-        s.broadcast(msg, ws, userId)
+        uid, err := strconv.Atoi(userId)
+        if err != nil {
+            log.Println(err)
+            return 
+        }
+
+        tid, err := strconv.Atoi(tripId)
+        if err != nil {
+            log.Println(err)
+            return 
+        }
+
+        s.broadcast(msg, ws, tid, uid)
     }
 }
 
-func (s *Hub)broadcast(b string, sender *websocket.Conn, userId string) {
-    log.Println(b)
+func (s *Hub)broadcast(msg string, sender *websocket.Conn, tripId, userId int) {
     for ws := range s.conns {
-        jsonMsg := &Message{
-            Message: b,
+        jsonMsg := &models.Message{
+            Message: msg,
             UserID: userId,
             Self: ws == sender,
         }
+
 
         encodedMsg, _, err := websocket.JSON.Marshal(jsonMsg)
         if err != nil {
@@ -98,4 +117,7 @@ func (s *Hub)broadcast(b string, sender *websocket.Conn, userId string) {
             }
         }(ws)
     }
+
+    db.SaveMessage(tripId, userId, msg)
+
 }
