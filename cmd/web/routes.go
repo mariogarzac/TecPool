@@ -43,5 +43,7 @@ func routes(app *config.AppConfig, s *handlers.Hub) http.Handler {
     mux.With(IsLoggedIn).Handle("/ws/chat/{tripId}/{userId}", websocket.Handler(s.HandleWs))
     mux.With(IsLoggedIn).Get("/chat/{tripId}/{userId}", handlers.Repo.RenderChat)
 
+    mux.With(IsLoggedIn).Post("/update-group-name", http.HandlerFunc(handlers.Repo.UpdateChatName))
+
     return mux
 }
