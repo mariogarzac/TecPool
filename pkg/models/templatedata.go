@@ -16,4 +16,6 @@ type TemplateData struct {
     Trips []map[string]interface{}
     UserTrips map[int]*Trip
     Messages []*Message
+    ChatName string
+    Users []*Users
 }

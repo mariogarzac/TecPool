@@ -7,4 +7,5 @@ type Trip struct {
     Time string
     UserID int
     LicensePlate string
+    Title string
 }
