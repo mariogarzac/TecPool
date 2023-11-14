@@ -1,17 +1,17 @@
 package handlers
 
 import (
-	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"strconv"
+    "encoding/json"
+    "io"
+    "log"
+    "net/http"
+    "strconv"
 
-	"github.com/go-chi/chi"
-	"github.com/mariogarzac/tecpool/pkg/db"
-	"github.com/mariogarzac/tecpool/pkg/models"
-	"github.com/mariogarzac/tecpool/pkg/render"
-	"golang.org/x/net/websocket"
+    "github.com/go-chi/chi"
+    "github.com/mariogarzac/tecpool/pkg/db"
+    "github.com/mariogarzac/tecpool/pkg/models"
+    "github.com/mariogarzac/tecpool/pkg/render"
+    "golang.org/x/net/websocket"
 )
 
 type Hub struct {
@@ -22,6 +22,52 @@ func NewHub() *Hub {
     return &Hub{
         conns: make(map[*websocket.Conn]bool),
     }
+}
+
+type NewChatNameRequest struct{
+    ChatName string `json:"chatName"`
+    ChatID string `json:"chatId"`
+}
+
+func (m *Repository)UpdateChatName(w http.ResponseWriter, r *http.Request){
+    var request NewChatNameRequest
+
+    // Decode the JSON request body into the struct
+    err := json.NewDecoder(r.Body).Decode(&request)
+    if err != nil {
+        log.Println(err)
+        http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
+        return
+    }
+
+    // Access the new group name using request.NewGroupName
+    // Perform the update in the database or handle as needed
+    newChatName := request.ChatName
+    chatId := request.ChatID
+    log.Println("Received ", newChatName, chatId)
+
+    cid, err := strconv.Atoi(chatId)
+    if err != nil {
+        log.Println("Error getting chat id", err)
+        return 
+    }
+
+    if err := db.UpdateGroupName(newChatName, cid); err != nil{
+        log.Println("Could not update group name")
+        return
+    }
+    
+    // Respond with a success message (optional)
+    response := map[string]string{"newChatName": newChatName, "message": "Group name updated successfully"}
+    jsonResponse, err := json.Marshal(response)
+    if err != nil {
+        http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(jsonResponse)
+
 }
 
 
@@ -41,14 +87,32 @@ func (m *Repository)RenderChat(w http.ResponseWriter, r *http.Request) {
     tid,_ = strconv.Atoi(tripId)
     messages,_ := db.LoadMessages(tid, uid)
 
-    for _, msg := range messages {
-        fmt.Println(msg.Self)
+    // Fetch the user's active trips
+    userTrips, err := db.GetUserTrips(uid)
+    if err != nil {
+        log.Println("Error getting user trips: ", err)
+        return
     }
 
+    chatName, err := db.GetTripTitle(tid)
+    if err != nil {
+        log.Println("Error getting chat name", err)
+        return 
+    }
+
+    tripParticipants,err := db.GetParticipants(tid)
+
+    if err != nil {
+        log.Println("Error getting trip participants", err)
+        return 
+    }
 
     render.RenderTemplate(w, r, "chat.page.html", &models.TemplateData{
         StringIntMap: stintMap,
-        Messages: messages,
+        Messages:     messages,
+        UserTrips:    userTrips, 
+        ChatName:     chatName,
+        Users:        tripParticipants,
     })
 }
 
@@ -68,7 +132,6 @@ func (s *Hub)readLoop(ws *websocket.Conn) {
         if err != nil {
             if err == io.EOF {
                 // The client closed the connection
-                log.Println("Client closed the connection")
                 return
             } else {
                 return
