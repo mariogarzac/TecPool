@@ -4,6 +4,7 @@ import (
     "database/sql"
     "fmt"
     "log"
+    "strconv"
     "time"
 
     "github.com/mariogarzac/tecpool/pkg/models"
@@ -122,6 +123,29 @@ func CreateTrip(carModel, licensePlate, departureTime string, userId int) error 
 
     if err != nil {
         log.Println("Error inserting data", err)
+        return err
+    }
+
+    tripId, err := GetTripID()
+
+    if err != nil {
+        return err
+    }
+
+    //Create trip chat as well
+    insertChat, err := db.Prepare("INSERT INTO `chats` (chat_id, trip_id, title) VALUES (?, ?, ?)")
+    if err != nil {
+        log.Println("Error preparing chat insert query:", err)
+        return err
+    }
+    defer insertChat.Close()
+
+    tripIDstr := strconv.Itoa(tripId)
+    title := "Group " + tripIDstr
+
+    _, err = insertChat.Exec(tripId, tripId, title)
+    if err != nil {
+        log.Println("Error inserting chat into db:", err)
         return err
     }
 
@@ -266,6 +290,8 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
             return tripMap, err
         }
 
+        title, err := GetTripTitle(tripId)
+
         trip := models.Trip{
             TripID: tripId,
             CarModel: carModel,
@@ -273,6 +299,7 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
             Time: time,
             UserID: uid,
             LicensePlate: licensePlate,
+            Title: title,
         }
 
         // add trip to map
@@ -286,6 +313,46 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
     }
 
     return tripMap, nil
+}
+
+func GetParticipants(tripId int) ([]*models.Users, error) {
+
+    var users []*models.Users
+
+    stmt := `SELECT u.fname, u.lname, u.phone_number
+    FROM users u JOIN trip_participants tp 
+    ON u.user_id = tp.user_id 
+    WHERE tp.trip_id = ?;`
+
+    rows, err := db.Query(stmt, tripId)
+    if err != nil {
+        log.Println("Error loading trip participants ", err)
+        return users, err
+    }
+
+    for rows.Next(){
+        var (
+            fname string
+            lname string
+            phoneNumber string
+        )
+
+        if err := rows.Scan(&fname, &lname, &phoneNumber); err != nil {
+            log.Println("Error saving name and phone number", err)
+            return users, err
+        }
+
+        user := models.Users{
+            Fname: fname,
+            Lname: lname,
+            Phone: phoneNumber,
+        }
+
+        users = append(users, &user)
+    }
+
+    return users, nil
+
 }
 
 func AddUserToTrip(userId, tripId uint64) error {
@@ -309,33 +376,7 @@ func AddUserToTrip(userId, tripId uint64) error {
 }
 
 
-func SaveMessage(tripId, userId int, msg string) error {
-    // Check if the chat exists
-    stmt := "SELECT * FROM chats WHERE chat_id = ?"
-    row := db.QueryRow(stmt, tripId)
-
-    var chatID int
-    var tripID int
-    if err := row.Scan(&chatID, &tripID); err != nil {
-        if err == sql.ErrNoRows{
-            // Chat doesn't exist, create it
-            insertChat, err := db.Prepare("INSERT INTO `chats` (chat_id, trip_id) VALUES (?, ?)")
-            if err != nil {
-                log.Println("Error preparing chat insert query:", err)
-                return err
-            }
-            defer insertChat.Close()
-
-            _, err = insertChat.Exec(tripId, tripId)
-            if err != nil {
-                log.Println("Error inserting chat into db:", err)
-                return err
-            }
-        } else {
-            log.Println("Error checking chat existence:", err)
-            return err
-        }
-    }
+func SaveMessage(chatId, userId int, msg string) error {
 
     // Insert the message
     insertMessage, err := db.Prepare("INSERT INTO `messages` (chat_id, user_id, message) VALUES (?, ?, ?)")
@@ -345,7 +386,7 @@ func SaveMessage(tripId, userId int, msg string) error {
     }
     defer insertMessage.Close()
 
-    _, err = insertMessage.Exec(tripId, userId, msg)
+    _, err = insertMessage.Exec(chatId, userId, msg)
     if err != nil {
         log.Println("Error inserting message into db:", err)
         return err
@@ -361,7 +402,7 @@ func LoadMessages(tripId, uid int) ([]*models.Message, error) {
     stmt := `SELECT m.chat_id, m.user_id, m.message, m.time FROM messages as m
     LEFT JOIN chats as c ON m.chat_id = c.trip_id
     WHERE m.chat_id = ?
-    ORDER BY m.time DESC`
+    ORDER BY m.time ASC`
 
     rows, err := db.Query(stmt, tripId)
     if err != nil {
@@ -379,11 +420,6 @@ func LoadMessages(tripId, uid int) ([]*models.Message, error) {
 
         if err := rows.Scan(&chatId, &userId, &message, &time); err != nil {
             log.Println("Error scanning rows: ", err)
-            return loadedMessages, err
-        }
-
-        if err != nil {
-            log.Println("Error parsing time: ", err)
             return loadedMessages, err
         }
 
@@ -405,4 +441,30 @@ func LoadMessages(tripId, uid int) ([]*models.Message, error) {
     }
 
     return loadedMessages, nil
+}
+
+func GetTripTitle(tripId int) (string, error) {
+
+    stmt := "select chat_name from chats where trip_id = ?"
+
+    row := db.QueryRow(stmt, tripId)
+
+    var chatName string
+    if err := row.Scan(&chatName); err != nil{
+        return chatName, err
+    }
+
+    return chatName, nil
+}
+
+func UpdateGroupName(name string, chatID int) error {
+    stmt := "UPDATE chats SET chat_name = ? WHERE chat_id = ?"
+    _, err := db.Exec(stmt, name, chatID)
+    if err != nil {
+        log.Println("Error updating chat name:", err)
+        return err
+        // Handle the error appropriately
+    }
+
+    return nil
 }
