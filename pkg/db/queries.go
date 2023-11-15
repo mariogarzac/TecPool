@@ -133,7 +133,7 @@ func CreateTrip(carModel, licensePlate, departureTime string, userId int) error 
     }
 
     //Create trip chat as well
-    insertChat, err := db.Prepare("INSERT INTO `chats` (chat_id, trip_id, title) VALUES (?, ?, ?)")
+    insertChat, err := db.Prepare("INSERT INTO `chats` (chat_id, trip_id, chat_name) VALUES (?, ?, ?)")
     if err != nil {
         log.Println("Error preparing chat insert query:", err)
         return err
@@ -141,9 +141,9 @@ func CreateTrip(carModel, licensePlate, departureTime string, userId int) error 
     defer insertChat.Close()
 
     tripIDstr := strconv.Itoa(tripId)
-    title := "Group " + tripIDstr
+    chatName := "Group " + tripIDstr
 
-    _, err = insertChat.Exec(tripId, tripId, title)
+    _, err = insertChat.Exec(tripId, tripId, chatName)
     if err != nil {
         log.Println("Error inserting chat into db:", err)
         return err
@@ -153,16 +153,44 @@ func CreateTrip(carModel, licensePlate, departureTime string, userId int) error 
 }
 
 // Fetch most recent trips
-func GetRecentTrips() (*sql.Rows, error) {
-    stmt := "SELECT * FROM Trips ORDER BY trip_id DESC LIMIT 4"
+func GetRecentTrips() ([]*models.Trip, error) {
+
+    stmt := `SELECT trip_id, car_model, departure_time, license_plate 
+    FROM Trips ORDER BY trip_id DESC LIMIT 4`
+
+    var trips []*models.Trip
     rows, err := db.Query(stmt)
     if err != nil {
         return nil, err
     }
 
+    for rows.Next(){
+
+        var (
+            tripID int
+            carModel string
+            departureTime []uint8
+            licensePlate string
+        )
+
+        if err := rows.Scan(&tripID, &carModel, &departureTime, &licensePlate); err != nil{
+            log.Println("Error parsing recent trips", err)
+            return nil, err
+        }
+
+        trip := models.Trip{
+            TripID: tripID,
+            CarModel: carModel,
+            Date: string(departureTime),
+            LicensePlate: licensePlate,
+        }
+
+        trips = append(trips, &trip)
+    }
+
     defer rows.Close()
 
-    return rows, nil
+    return trips, nil
 }
 
 func GetTripID() (int, error) {
@@ -180,7 +208,7 @@ func GetTripID() (int, error) {
 }
 
 // SearchTripsByDepartureTime fetches trips from the database that match the given departure time
-func SearchTripsByDepartureTime(departureTime time.Time) (*sql.Rows, error) {
+func SearchTripsByDepartureTime(departureTime time.Time) ([]*models.Trip, error) {
     // Convert the departureTime to a string in the format YYYY-MM-DD HH:MM:SS
     formattedTime := departureTime.Format("2006-01-02 15:04:05")
 
@@ -194,7 +222,32 @@ func SearchTripsByDepartureTime(departureTime time.Time) (*sql.Rows, error) {
 
     defer rows.Close()
 
-    return rows, nil
+    var trips []*models.Trip
+
+    for rows.Next(){
+        var (
+            tripID int
+            carModel string
+            licensePlate string
+            departureTime []uint8
+            userID int
+        )
+
+        if err := rows.Scan(&tripID, &carModel, &licensePlate, &departureTime, &userID); err != nil{
+            log.Println("Error fetching trips by time", err)
+        }
+        trip := models.Trip{
+            TripID: tripID,
+            CarModel: carModel,
+            LicensePlate: licensePlate, 
+            Date: string(departureTime),
+            UserID: userID,
+        }
+
+        trips = append(trips, &trip)
+    }
+
+    return trips, nil
 }
 
 func DoesTripExist(tripId int) bool {
@@ -290,7 +343,7 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
             return tripMap, err
         }
 
-        title, err := GetTripTitle(tripId)
+        chatName, err := GetTripTitle(tripId)
 
         trip := models.Trip{
             TripID: tripId,
@@ -299,7 +352,7 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
             Time: time,
             UserID: uid,
             LicensePlate: licensePlate,
-            Title: title,
+            ChatName: chatName,
         }
 
         // add trip to map
@@ -467,4 +520,36 @@ func UpdateGroupName(name string, chatID int) error {
     }
 
     return nil
+}
+
+func GetUserInfo(userID int) []*models.Users{
+
+    stmt := `select fname, lname, email, phone_number
+    from users where user_id = ?`
+
+    row := db.QueryRow(stmt, userID)
+
+    var (
+        fname string
+        lname string
+        email string
+        phone string
+    )
+
+    if err := row.Scan(&fname, &lname, &email, &phone); err != nil {
+        log.Println("Error getting user info", err)
+        return nil
+    }
+
+    user := models.Users{
+        Fname: fname,
+        Lname: lname,
+        Email: email,
+        Phone: phone,
+    }
+
+    var users []*models.Users
+    users = append(users, &user)
+
+    return users
 }
