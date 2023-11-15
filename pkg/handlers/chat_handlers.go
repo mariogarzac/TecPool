@@ -15,12 +15,12 @@ import (
 )
 
 type Hub struct {
-    conns map[*websocket.Conn]bool
+    conns map[*websocket.Conn]int
 }
 
 func NewHub() *Hub {
     return &Hub{
-        conns: make(map[*websocket.Conn]bool),
+        conns: make(map[*websocket.Conn]int),
     }
 }
 
@@ -56,7 +56,7 @@ func (m *Repository)UpdateChatName(w http.ResponseWriter, r *http.Request){
         log.Println("Could not update group name")
         return
     }
-    
+
     // Respond with a success message (optional)
     response := map[string]string{"newChatName": newChatName, "message": "Group name updated successfully"}
     jsonResponse, err := json.Marshal(response)
@@ -64,7 +64,7 @@ func (m *Repository)UpdateChatName(w http.ResponseWriter, r *http.Request){
         http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
         return
     }
-    
+
     w.Header().Set("Content-Type", "application/json")
     w.Write(jsonResponse)
 
@@ -119,7 +119,22 @@ func (m *Repository)RenderChat(w http.ResponseWriter, r *http.Request) {
 func (s *Hub) HandleWs(ws *websocket.Conn) {
     log.Println("New connection from ", ws.RemoteAddr())
 
-    s.conns[ws] = true
+    var messageData map[string]string
+    err := websocket.JSON.Receive(ws, &messageData)
+
+    if err != nil {
+        if err == io.EOF {
+            return
+        } 
+    }
+
+    tid,err := strconv.Atoi(messageData["tripId"])
+
+    if err != nil {
+        return 
+    }
+
+    s.conns[ws] = tid
     s.readLoop(ws)
 }
 
@@ -131,9 +146,6 @@ func (s *Hub)readLoop(ws *websocket.Conn) {
 
         if err != nil {
             if err == io.EOF {
-                // The client closed the connection
-                return
-            } else {
                 return
             }
         }
@@ -159,28 +171,30 @@ func (s *Hub)readLoop(ws *websocket.Conn) {
 }
 
 func (s *Hub)broadcast(msg string, sender *websocket.Conn, tripId, userId int) {
-    for ws := range s.conns {
-        jsonMsg := &models.Message{
-            Message: msg,
-            UserID: userId,
-            Self: ws == sender,
-        }
-
-
-        encodedMsg, _, err := websocket.JSON.Marshal(jsonMsg)
-        if err != nil {
-            log.Printf("Error encoding JSON message: %v", err)
-            return
-        }
-
-        go func(ws *websocket.Conn) {
-            // send the json message to the front end here
-            if _, err := ws.Write(encodedMsg); err != nil {
-                return 
+    for ws,tid := range s.conns {
+        if tid == tripId{
+            jsonMsg := &models.Message{
+                Message: msg,
+                UserID: userId,
+                Self: ws == sender,
             }
-        }(ws)
-    }
 
-    db.SaveMessage(tripId, userId, msg)
+
+            encodedMsg, _, err := websocket.JSON.Marshal(jsonMsg)
+            if err != nil {
+                log.Printf("Error encoding JSON message: %v", err)
+                return
+            }
+
+            go func(ws *websocket.Conn) {
+                // send the json message to the front end here
+                if _, err := ws.Write(encodedMsg); err != nil {
+                    return 
+                }
+            }(ws)
+        }
+
+        db.SaveMessage(tripId, userId, msg)
+    }
 
 }
