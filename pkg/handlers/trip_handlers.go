@@ -140,46 +140,15 @@ func (m *Repository) SearchTripsHandler(w http.ResponseWriter, r *http.Request) 
     log.Println("Departure time", departureTime)
 
     // Fetch trips from the database that match the given departure time
-    rows, err := db.SearchTripsByDepartureTime(departureTime)
+    trips, err := db.SearchTripsByDepartureTime(departureTime)
     if err != nil {
         log.Println("Error fetching trips by departure time:", err)
         http.Error(w, `{"error": "Internal server error"}`, http.StatusInternalServerError)
         return
     }
-    defer rows.Close()
 
-    var trips []map[string]interface{}
-    columns, _ := rows.Columns()
-    for rows.Next() {
-        values := make([]interface{}, len(columns))
-        valuePtrs := make([]interface{}, len(columns))
-        for i := 0; i < len(columns); i++ {
-            valuePtrs[i] = &values[i]
-        }
-        err := rows.Scan(valuePtrs...)
-        if err != nil {
-            log.Println("Error scanning row:", err)
-            http.Error(w, `{"error": "Internal server error"}`, http.StatusInternalServerError)
-            return
-        }
-        trip := make(map[string]interface{})
-        for i, col := range columns {
-            // Check if the value is a byte slice ([]byte) and convert it to a string
-            if v, ok := values[i].([]byte); ok {
-                trip[col] = string(v)
-            } else {
-                trip[col] = values[i]
-            }
-        }
-        trips = append(trips, trip)
-    }
-    log.Println("Fetched trips:", trips)
-
-    // Check for errors after the rows.Next() loop
-    if err = rows.Err(); err != nil {
-        log.Println("Error processing rows:", err)
-        http.Error(w, `{"error": "Internal server error"}`, http.StatusInternalServerError)
-        return
+    for i := range trips {
+        log.Println("Fetched trips ", trips[i].CarModel)
     }
 
     w.Header().Set("Content-Type", "application/json")
