@@ -36,11 +36,11 @@
 
             <img src="/static/driver_placeholder.png" alt="Foto del conductor"
             class="h-24 w-24 rounded-full mx-auto mb-4">
-            <p class="font-medium text-center mb-2">Car Model: {{ .car_model }}</p>
-            <p class="text-center mb-2">License Plate: {{ .license_plate }}</p>
-            <p class="text-center">Departure Time: {{ .departure_time }}</p>
+            <p class="font-medium text-center mb-2">Car Model: {{ .CarModel }}</p>
+            <p class="text-center mb-2">License Plate: {{ .LicensePlate }}</p>
+            <p class="text-center">Departure Time: {{ .Date }}</p>
 
-            <a href="/join-trip/{{.trip_id}}" class="bg-blue-600 hover:bg-blue-700 py-1 px-2 rounded text-white">Unirse</a>
+            <a href="/join-trip/{{.TripID}}" class="bg-blue-600 hover:bg-blue-700 py-1 px-2 rounded text-white">Unirse</a>
 
         </div>
         {{ end }}
@@ -89,15 +89,15 @@
                     <div class="form-row">
                         <div class="col-md-6">
                             <label for="car_model">Car Model:</label>
-                            <input required class="form-control" type="text" name="car_model" required>
+                            <input id="car_model" required class="form-control" type="text" name="car_model" required>
                         </div>
                         <div class="col-md-6">
                             <label for="plate">License Plate:</label>
-                            <input required class="form-control" type="text" name="plate" required>
+                            <input id="plate" required class="form-control" type="text" name="plate" required>
                         </div>
                         <div class="col-md-6">
                             <label for="departure_time">Departure Time:</label>
-                            <input required class="form-control" type="datetime-local" name="departure_time"
+                            <input id="departure_time" required class="form-control" type="datetime-local" name="departure_time"
                             required>
                         </div>
                     </div>
@@ -161,7 +161,7 @@
             .then(data => {
                 console.log("Received data:", data);
                 let resultsDiv = document.querySelector('#searchResults');
-                resultsDiv.innerHTML = data.map(trip => `<p>${trip.car_model} - ${trip.departure_time}</p>`).join('');
+                resultsDiv.innerHTML = data.map(trip => `<p>${trip.carModel} - ${trip.date} ${trip.time}</p>`).join('');
             })
             .catch(error => {
                 console.error("Error:", error);
