@@ -13,7 +13,7 @@ type TemplateData struct {
     Data map[string]interface{}
     Forms *forms.Form
     IsLoggedIn bool
-    Trips []map[string]interface{}
+    Trips []*Trip
     UserTrips map[int]*Trip
     Messages []*Message
     ChatName string

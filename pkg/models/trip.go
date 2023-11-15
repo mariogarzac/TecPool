@@ -1,11 +1,11 @@
 package models
 
 type Trip struct {
-    TripID int
-    CarModel string
-    Date string
-    Time string
-    UserID int
-    LicensePlate string
-    Title string
+    TripID int `json:"tripId"`
+    CarModel string `json:"carModel"`
+    Date string `json:"date"`
+    Time string `json:"time"`
+    UserID int `json:"userId"`
+    LicensePlate string `json:"licensePlate"`
+    ChatName string `json:"chatName"`
 }
