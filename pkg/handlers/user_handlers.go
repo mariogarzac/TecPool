@@ -104,15 +104,32 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
     m.App.Session.Put(r.Context(), "userId", userId)
     m.App.Session.Put(r.Context(), "name", name)
 
-    // save cookie to db
-
-    // if  err != nil {
-    //     log.Println("Error saving session to db ", err)
-    //     return
-    // }
-
     // redirect to the dashboard
     log.Println("Log in success")
     http.Redirect(w, r, "/", http.StatusSeeOther)
 
+}
+
+func (m *Repository)ShowSettings(w http.ResponseWriter, r *http.Request){
+
+    // Get User history
+    userID := m.App.Session.GetInt(r.Context(), "userId")
+    userTripHistory, err := db.GetUserTrips(userID)
+    if err != nil {
+        log.Println(err)
+        return 
+    }
+
+    user := db.GetUserInfo(userID)
+
+    render.RenderTemplate(w, r, "settings.page.html", &models.TemplateData{
+        UserTrips: userTripHistory,
+        Users: user,
+    })
+}
+
+func (m *Repository)Logout(w http.ResponseWriter, r *http.Request){
+    m.App.Session.Destroy(r.Context())
+
+    render.RenderTemplate(w, r, "login.page.html", &models.TemplateData{})
 }

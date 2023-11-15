@@ -29,48 +29,57 @@ func NewHandlers(r *Repository) {
 
 // Renders the home page
 func (m *Repository) Dashboard(w http.ResponseWriter, r *http.Request) {
+
+    trips, err := db.GetRecentTrips()
+    if err != nil {
+        return
+    }
+
 	// Fetch the 4 most recent trips from the database
-	rows, err := db.GetRecentTrips()
-	if err != nil {
-		log.Println("Error fetching recent trips:", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	var trips []map[string]interface{}
-	columns, _ := rows.Columns()
-	for rows.Next() {
-		values := make([]interface{}, len(columns))
-		valuePtrs := make([]interface{}, len(columns))
-		for i := 0; i < len(columns); i++ {
-			valuePtrs[i] = &values[i]
-		}
-		err := rows.Scan(valuePtrs...)
-		if err != nil {
-			log.Println("Error scanning row:", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-		trip := make(map[string]interface{})
-		for i, col := range columns {
-			// Check if the value is a byte slice ([]byte) and convert it to a string
-			if v, ok := values[i].([]byte); ok {
-				trip[col] = string(v)
-			} else {
-				trip[col] = values[i]
-			}
-		}
-		trips = append(trips, trip)
-
-	}
-
-	// Check for errors after the rows.Next() loop
-	if err = rows.Err(); err != nil {
-		log.Println("Error processing rows:", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	// rows, err := db.GetRecentTrips()
+	//     log.Println(rows)
+	// if err != nil {
+	// 	log.Println("Error fetching recent trips:", err)
+	// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
+	// 	return
+	// }
+	// defer rows.Close()
+	//
+	// var trips []map[string]interface{}
+	// columns, _ := rows.Columns()
+	// for rows.Next() {
+	// 	values := make([]interface{}, len(columns))
+	// 	valuePtrs := make([]interface{}, len(columns))
+	// 	for i := 0; i < len(columns); i++ {
+	// 		valuePtrs[i] = &values[i]
+	// 	}
+	// 	err := rows.Scan(valuePtrs...)
+	// 	if err != nil {
+	// 		log.Println("Error scanning row:", err)
+	// 		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// 	trip := make(map[string]interface{})
+	// 	for i, col := range columns {
+	// 		// Check if the value is a byte slice ([]byte) and convert it to a string
+	// 		if v, ok := values[i].([]byte); ok {
+	// 			trip[col] = string(v)
+	// 		} else {
+	// 			trip[col] = values[i]
+	// 		}
+	// 	}
+	// 	trips = append(trips, trip)
+	//
+	// }
+	//
+	//     log.Println(trips)
+	//
+	// // Check for errors after the rows.Next() loop
+	// if err = rows.Err(); err != nil {
+	// 	log.Println("Error processing rows:", err)
+	// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
+	// 	return
+	// }
 
 
 	isLoggedIn := m.App.Session.GetBool(r.Context(), "isLoggedIn")
