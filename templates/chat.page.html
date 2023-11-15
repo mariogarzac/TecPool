@@ -108,6 +108,19 @@
         // Create websocket connection
         const socket = new WebSocket(`ws://localhost:3001/ws/chat/${tripId}/${userId}`);
 
+        const connectionMsg = JSON.stringify({"tripId":tripId})
+
+        const handleSend = () => {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(connectionMsg)
+            } else if (socket.readyState == WebSocket.CONNECTING) {
+                socket.addEventListener('open', () => handleSend())
+            } 
+        };
+
+        handleSend();
+
+
         // Event listener for sending a message
         sendButton.addEventListener('click', function() {
             const message = messageInput.value;
