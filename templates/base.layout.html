@@ -13,15 +13,13 @@
 
         {{end}}
 
-        <script src="https://cdn.tailwindcss.com"></script>
-
         {{ block "css" .}}
 
         {{end}}
 
     </head>
 
-    <body class="bg-gray-100">
+    <body class="bg-gray-100 min-h-screen flex flex-col">
         <header class="bg-blue-600 text-white p-4">
             <div class="container mx-auto flex justify-between items-center">
                 <img src="/static/tecpool_logo.png" alt="Logo de TecPool" class="h-10">
@@ -31,26 +29,49 @@
                     <a href="/trips" class="hover:text-gray-300">Viajes</a>
                     <a href="#" class="hover:text-gray-300">Contacto</a>
                 </nav>
-                <!-- <button class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</button> -->
 
-                <!-- Shows user where login button would be -->
                 {{if .IsLoggedIn}}
-                    {{index .StringMap "name"}}
+                <div>
+
+                    <button class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center" type="button" data-dropdown-toggle="dropdown">{{ index .StringMap "name" }}<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+
+                    <!-- Dropdown menu -->
+                    <div class="hidden bg-white text-base z-50 list-none divide-y divide-gray-100 rounded shadow my-4" id="dropdown">
+                        <ul class="py-1" aria-labelledby="dropdown">
+                            <li>
+                                <a href="/settings" class="text-sm hover:bg-gray-100 text-gray-700 block px-4 py-2">Ajustes</a>
+                            </li>
+                            <li>
+                                <a href="/logout" class="text-sm hover:bg-gray-100 text-gray-700 block px-4 py-2">Cerrar Sesión</a>
+                            </li>
+                            <!-- <li> -->
+                            <!--     <a href="#" class="text-sm hover:bg-gray-100 text-gray-700 block px-4 py-2">Earnings</a> -->
+                            <!-- </li> -->
+                            <!-- <li> -->
+                            <!--     <a href="#" class="text-sm hover:bg-gray-100 text-gray-700 block px-4 py-2">Sign out</a> -->
+                            <!-- </li> -->
+                        </ul>
+                    </div>
+
+                </div>                
                 {{else}}
-                    <a href="/login"type="button" class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</a> 
+                <a href="/login"type="button" class="bg-blue-500 hover:bg-blue-700 py-2 px-4 rounded">Iniciar Sesión/Registrarse</a> 
                 {{end}}
 
             </div>
         </header>
-        {{block "content" .}}
 
-        {{end}}
+        <main class="flex-grow">
+            {{block "content" .}}
+
+            {{end}}
+        </main>
 
         {{block "js" .}}
 
         {{end}}
         <!-- Pie de Página (Footer) -->
-        <footer class="bg-blue-600 text-white p-4 mt-16">
+        <footer class="bg-blue-600 text-white p-4 mt-auto">
             <div class="container mx-auto flex justify-between items-center">
                 <p>Información de contacto: contacto@tecpool.com</p>
                 <div class="flex space-x-4">
@@ -64,8 +85,8 @@
                 </div>
             </div>
         </footer>
-
+        <script src="https://unpkg.com/@themesberg/flowbite@latest/dist/flowbite.bundle.js"></script>
     </body>
+
 </html>
 {{end}}
-
