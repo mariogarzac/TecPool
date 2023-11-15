@@ -1,0 +1,83 @@
+{{ template "base" . }}
+
+{{ define "content" }}
+<body class="bg-gray-100">
+
+    <div class="max-w-screen-md mx-auto my-10 bg-white p-8 rounded shadow-lg">
+        <div class="flex justify-between items-center bg-blue-500 text-white p-4 rounded-t-lg">
+            <a href="#" id="account-link" class="hover:bg-blue-700 px-4 py-2 rounded">Account</a>
+            <a href="#" id="trip-history-link" class="hover:bg-blue-700 px-4 py-2 rounded">Trip History</a>
+        </div>
+        <div class="p-6">
+            <!-- Content for Account -->
+            <div id="account-content">
+                <h2 class="text-2xl font-semibold mb-4">Account Settings</h2>
+                <!-- Your account settings content goes here -->
+                {{ with index .Users 0}}
+                <p class="font-bold text-lg">Name:</p>
+                <p> {{ .Fname }} {{ .Lname }}</p>
+                <p class="font-bold text-lg">Email:</p>
+                <p>{{ .Email }} </p>
+                <p class="font-bold text-lg">Phone Number:</p>
+                <p> {{ .Phone  }} </p>
+                <p class="font-bold text-lg">Change Password:</p>
+
+                <input type="text" placeholder="Old Password" class="flex-grow px-4 py-2 mr-2 border rounded">
+                <input type="text" placeholder="New Password" class="flex-grow px-4 py-2 mr-2 border rounded">
+                <input type="text" placeholder="Re-enter Password" class="flex-grow px-4 py-2 mr-2 border rounded">
+
+                <button id="send-button" class="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
+
+                {{ end }}
+
+            </div>
+
+            <!-- Content for Trip History -->
+            <div id="trip-history-content" style="display: none;">
+                <h2 class="text-2xl font-semibold mb-4">Trip History</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {{ range .UserTrips }}
+                    <div class="bg-white p-6 rounded shadow-md">
+                        <!-- Car Model and License Plate (Top) -->
+                        <div class="mb-4">
+                            <p class="text-lg font-semibold">{{ .CarModel }}</p>
+                            <p class="text-sm text-gray-500">{{ .LicensePlate }}</p>
+                        </div>
+                        <!-- Trip ID and Date (Bottom) -->
+                        <div>
+                            <p class="text-sm text-gray-500">Trip ID: {{ .TripID }}</p>
+                            <p class="text-sm text-gray-500">Date: {{ .Date }}</p>
+                        </div>
+                    </div>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </html>
+
+    {{ end }}
+
+    {{ define "js" }}
+
+    <script>
+        // JavaScript to toggle between
+        const accountLink = document.getElementById('account-link');
+        const tripHistoryLink = document.getElementById('trip-history-link');
+        const accountContent = document.getElementById('account-content');
+        const tripHistoryContent = document.getElementById('trip-history-content');
+
+        accountLink.addEventListener('click', () => {
+            accountContent.style.display = 'block';
+            tripHistoryContent.style.display = 'none';
+        });
+
+        tripHistoryLink.addEventListener('click', () => {
+            accountContent.style.display = 'none';
+            tripHistoryContent.style.display = 'block';
+        });
+    </script>
+
+</body>
+{{ end }}
