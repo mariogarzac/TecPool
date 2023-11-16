@@ -663,16 +663,44 @@ func GetUserInfo(userID int) []*models.Users{
     return users
 }
 
-// func ChangePassword(prevPassword, newPassword string) error {
-//
-//     stmt := "UPDATE `trips` SET image_url = ? WHERE trip_id = ?"
-//
-//     _, err = db.Exec(stmt, imageUrl, tripID)
-//
-//     if err != nil {
-//         log.Println("Error inserting data", err)
-//         return err
-//     }
-//
-//     return nil
-// }
+func ChangePassword(userID int, oldPassword ,newPassword string) error {
+
+    var hash string
+
+    stmt := "SELECT password FROM `users` WHERE user_id = ?"
+    row := db.QueryRow(stmt, userID)
+    err = row.Scan(&hash)
+
+    if err != nil {
+        log.Println("Error selecting hash in db by username", err)
+        return err
+    }
+
+
+
+    err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(oldPassword))
+    if err != nil {
+        log.Println("Passwords do not match. Not changing password", err)
+        return err
+    }
+
+    log.Println("Passwords matched!")
+
+    var hashedPassword []byte
+    hashedPassword, err = bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+    if err != nil {
+        log.Println("Error creating the hash ", err)
+        return err
+    }
+
+    stmt = "UPDATE `users` SET password = ? WHERE user_id = ?"
+    
+    _, err = db.Exec(stmt, hashedPassword, userID)
+    
+    if err != nil {
+        log.Println("Error inserting data", err)
+        return err
+    }
+    
+    return nil
+}

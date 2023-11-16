@@ -75,6 +75,7 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
         render.RenderTemplate(w, r, "login.page.html", &models.TemplateData{
             StringMap: stringMap,
         })
+        return
     } 
 
     // get the user's name by their email
