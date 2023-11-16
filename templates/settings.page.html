@@ -22,9 +22,9 @@
                 <p> {{ .Phone  }} </p>
                 <p class="font-bold text-lg">Change Password:</p>
 
-                <input type="text" placeholder="Old Password" class="flex-grow px-4 py-2 mr-2 border rounded">
-                <input type="text" placeholder="New Password" class="flex-grow px-4 py-2 mr-2 border rounded">
-                <input type="text" placeholder="Re-enter Password" class="flex-grow px-4 py-2 mr-2 border rounded">
+                <input id="oldPassword" type="text" placeholder="Old Password" class="flex-grow px-4 py-2 mr-2 border rounded">
+                <input id="newPassword" type="text" placeholder="New Password" class="flex-grow px-4 py-2 mr-2 border rounded">
+                <input id="passwordConfirmation" type="text" placeholder="Re-enter Password" class="flex-grow px-4 py-2 mr-2 border rounded">
 
                 <button id="send-button" class="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
 
@@ -77,6 +77,48 @@
             accountContent.style.display = 'none';
             tripHistoryContent.style.display = 'block';
         });
+    </script>
+
+    <script>
+        const oldPassword = document.getElementById('oldPassword');
+        const newPassword = document.getElementById('newPassword');
+        const passwordConf = document.getElementById('passwordConfirmation');
+
+        const passwordBtn = document.getElementById('send-button');
+
+        function sendNewPassword(){
+            fetch('/account/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "old_password": oldPassword.value,
+                    "new_password": newPassword.value
+                })
+            }) 
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json(); // Parse the response as JSON
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                sendNewPassword();
+            }
+        });
+
+        passwordBtn.addEventListener('click', () => {
+            sendNewPassword()
+        });
+
+
     </script>
 
 </body>
