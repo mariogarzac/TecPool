@@ -2,8 +2,11 @@ package db
 
 import (
     "database/sql"
+    "encoding/json"
     "fmt"
+    "io"
     "log"
+    "net/http"
     "strconv"
     "time"
 
@@ -56,7 +59,7 @@ func RegisterUser(fname, lname, password, email, phone, dob string) error {
 func ValidateUserInfo(email, password string) error {
     var hash string
 
-    stmt := "SELECT password FROM users WHERE email = ?"
+    stmt := "SELECT password FROM `users` WHERE email = ?"
     row := db.QueryRow(stmt, string(email))
     err = row.Scan(&hash)
 
@@ -78,7 +81,7 @@ func ValidateUserInfo(email, password string) error {
 func GetUserIDByEmail(email string) (int, error) {
     var userId int
 
-    stmt := "SELECT user_id FROM users WHERE email = ?"
+    stmt := "SELECT user_id FROM `users` WHERE email = ?"
     row := db.QueryRow(stmt, email)
     err = row.Scan(&userId)
 
@@ -91,7 +94,7 @@ func GetUserIDByEmail(email string) (int, error) {
 
 func GetNameByID(id int) (string, error) {
     var name string
-    stmt := "SELECT fname FROM users WHERE user_id = ?"
+    stmt := "SELECT fname FROM `users` WHERE user_id = ?"
     row := db.QueryRow(stmt, id)
     err = row.Scan(&name)
 
@@ -290,7 +293,7 @@ func IsUserInTrip(tripId, userId int) bool {
 }
 func GetUserTrips(userId int) (map[int]*models.Trip, error){
 
-    stmt := `SELECT t.trip_id, t.car_model, t.departure_time, t.user_id, t.license_plate 
+    stmt := `SELECT t.trip_id, t.car_model, t.departure_time, t.user_id, t.license_plate, t.image_url
     FROM trips as t, trip_participants as tp
     WHERE tp.trip_id = t.trip_id 
     AND tp.user_id = ?;`
@@ -326,9 +329,10 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
             departureTime []uint8
             userId int
             licensePlate string
+            image sql.NullString
         )
 
-        if err := rows.Scan(&tripId, &carModel, &departureTime, &userId, &licensePlate); err != nil {
+        if err := rows.Scan(&tripId, &carModel, &departureTime, &userId, &licensePlate, &image); err != nil {
             log.Println("Error scanning rows: ", err)
             return tripMap, err
         }
@@ -343,6 +347,22 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
             return tripMap, err
         }
 
+        var imageURL string
+
+        if !image.Valid {
+            imageURL = GetCarImage(carModel)
+
+            if err := SaveImage(imageURL, tripId); err != nil {
+                log.Fatal("Error saving image", err) 
+            }
+        } else {
+            imageURL = GetImageFromDB(tripId)
+
+            if err != nil {
+                log.Fatal("Error getting image from db", err) 
+            }
+        }
+
         chatName, err := GetTripTitle(tripId)
 
         trip := models.Trip{
@@ -353,6 +373,7 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
             UserID: uid,
             LicensePlate: licensePlate,
             ChatName: chatName,
+            Image: imageURL,
         }
 
         // add trip to map
@@ -366,6 +387,93 @@ func ProcessTrips(rows *sql.Rows, uid int) (map[int]*models.Trip, error) {
     }
 
     return tripMap, nil
+}
+
+
+func GetImageFromDB(tripID int) string {
+    stmt := "select image_url from trips where trip_id = ?"
+
+    row := db.QueryRow(stmt, tripID)
+    if err != nil {
+        log.Println("Error getting image from db:", err)
+        return ""
+    }
+
+    var imageURL string
+    err := row.Scan(&imageURL)
+
+    if err != nil {
+        log.Println("Error occured", err)
+        return ""
+    }
+    
+    return imageURL
+}
+
+type Image struct {
+    Photos []struct {
+        Src struct {
+            Tiny string `json:"tiny"`
+        } `json:"src"`
+    } `json:"photos"`
+}
+
+func GetCarImage(carModel string) string {
+    apiURL := "https://api.pexels.com/v1/search?query=" + carModel
+    apiKey := "fqT1IUpPiOY3OY0edw8Gbmb8xpDy1eE9XCZsmgvRvKcIqzrkcBP3Z9CF"
+
+    // Create a new HTTP client
+    client := &http.Client{}
+
+    // Create a new GET request
+    request, err := http.NewRequest("GET", apiURL, nil)
+    if err != nil {
+        log.Println("Error creating request:", err)
+        return ""
+    }
+
+    // Add the Authorization header
+    request.Header.Add("Authorization", apiKey)
+
+    // Make the request
+    response, err := client.Do(request)
+    if err != nil {
+        log.Println("Error making the request:", err)
+        return ""
+    }
+    defer response.Body.Close()
+
+    // Read the response body
+    body, err := io.ReadAll(response.Body)
+    if err != nil {
+        log.Println("Error reading the response body:", err)
+        return ""
+    }
+
+    // Print the API response
+    var image Image
+
+    err = json.Unmarshal(body, &image)
+    if err != nil {
+        log.Println("Error unmarshaling JSON:", err)
+        return ""
+    }
+
+    return image.Photos[0].Src.Tiny 
+}
+
+func SaveImage(imageUrl string, tripID int) error {
+
+    stmt := "UPDATE `trips` SET image_url = ? WHERE trip_id = ?"
+
+    _, err = db.Exec(stmt, imageUrl, tripID)
+
+    if err != nil {
+        log.Println("Error inserting data", err)
+        return err
+    }
+
+    return nil
 }
 
 func GetParticipants(tripId int) ([]*models.Users, error) {
@@ -498,7 +606,7 @@ func LoadMessages(tripId, uid int) ([]*models.Message, error) {
 
 func GetTripTitle(tripId int) (string, error) {
 
-    stmt := "select chat_name from chats where trip_id = ?"
+    stmt := "SELECT `chat_name` FROM chats WHERE trip_id = ?"
 
     row := db.QueryRow(stmt, tripId)
 
@@ -511,12 +619,13 @@ func GetTripTitle(tripId int) (string, error) {
 }
 
 func UpdateGroupName(name string, chatID int) error {
+
     stmt := "UPDATE chats SET chat_name = ? WHERE chat_id = ?"
     _, err := db.Exec(stmt, name, chatID)
+
     if err != nil {
         log.Println("Error updating chat name:", err)
         return err
-        // Handle the error appropriately
     }
 
     return nil
@@ -553,3 +662,17 @@ func GetUserInfo(userID int) []*models.Users{
 
     return users
 }
+
+// func ChangePassword(prevPassword, newPassword string) error {
+//
+//     stmt := "UPDATE `trips` SET image_url = ? WHERE trip_id = ?"
+//
+//     _, err = db.Exec(stmt, imageUrl, tripID)
+//
+//     if err != nil {
+//         log.Println("Error inserting data", err)
+//         return err
+//     }
+//
+//     return nil
+// }

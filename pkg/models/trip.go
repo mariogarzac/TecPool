@@ -8,4 +8,5 @@ type Trip struct {
     UserID int `json:"userId"`
     LicensePlate string `json:"licensePlate"`
     ChatName string `json:"chatName"`
+    Image string `json:"image"`
 }

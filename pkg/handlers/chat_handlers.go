@@ -194,7 +194,7 @@ func (s *Hub)broadcast(msg string, sender *websocket.Conn, tripId, userId int) {
             }(ws)
         }
 
-        db.SaveMessage(tripId, userId, msg)
     }
+    db.SaveMessage(tripId, userId, msg)
 
 }

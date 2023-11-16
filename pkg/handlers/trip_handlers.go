@@ -1,16 +1,16 @@
 package handlers
 
 import (
-    "encoding/json"
-    "log"
-    "net/http"
-    "time"
-    "strconv"
+	"encoding/json"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
 
-    "github.com/go-chi/chi"
-    "github.com/mariogarzac/tecpool/pkg/db"
-    "github.com/mariogarzac/tecpool/pkg/models"
-    "github.com/mariogarzac/tecpool/pkg/render"
+	"github.com/go-chi/chi"
+	"github.com/mariogarzac/tecpool/pkg/db"
+	"github.com/mariogarzac/tecpool/pkg/models"
+	"github.com/mariogarzac/tecpool/pkg/render"
 )
 
 func (m *Repository) CreateTrip(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +100,7 @@ func (m *Repository) ActiveTrips(w http.ResponseWriter, r *http.Request){
     userId := m.App.Session.GetInt(r.Context(), "userId")
 
     userTrips := make(map[int]*models.Trip)
+
 
     // Get user trips from the db
     userTrips, err := db.GetUserTrips(userId)
