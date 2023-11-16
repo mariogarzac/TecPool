@@ -40,7 +40,8 @@ func routes(app *config.AppConfig, s *handlers.Hub) http.Handler {
     // Add the new route for searching trips by departure_time
     mux.With(IsLoggedIn).Post("/searchTrips", http.HandlerFunc(handlers.Repo.SearchTripsHandler))
 
-    mux.With(IsLoggedIn).Get("/settings", http.HandlerFunc(handlers.Repo.ShowSettings))
+    mux.With(IsLoggedIn).Get("/account", http.HandlerFunc(handlers.Repo.ShowSettings))
+    mux.With(IsLoggedIn).Post("/account/change-password", http.HandlerFunc(handlers.Repo.ChangePassword))
 
     mux.With(IsLoggedIn).Get("/join-trip/{tripId}", http.HandlerFunc(handlers.Repo.JoinTrip))
 
