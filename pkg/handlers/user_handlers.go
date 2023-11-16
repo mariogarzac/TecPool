@@ -1,12 +1,13 @@
 package handlers
 
 import (
-    "log"
-    "net/http"
+	"encoding/json"
+	"log"
+	"net/http"
 
-    "github.com/mariogarzac/tecpool/pkg/db"
-    "github.com/mariogarzac/tecpool/pkg/models"
-    "github.com/mariogarzac/tecpool/pkg/render"
+	"github.com/mariogarzac/tecpool/pkg/db"
+	"github.com/mariogarzac/tecpool/pkg/models"
+	"github.com/mariogarzac/tecpool/pkg/render"
 )
 
 func (m *Repository) Register(w http.ResponseWriter, r *http.Request) {
@@ -132,4 +133,33 @@ func (m *Repository)Logout(w http.ResponseWriter, r *http.Request){
     m.App.Session.Destroy(r.Context())
 
     render.RenderTemplate(w, r, "login.page.html", &models.TemplateData{})
+}
+
+type PasswordUpdate struct {
+    OldPassword string `json:"old_password"`
+    NewPassword string `json:"new_password"`
+}
+
+func (m *Repository)ChangePassword(w http.ResponseWriter, r *http.Request){
+
+    var update PasswordUpdate
+
+    decoder := json.NewDecoder(r.Body)
+    if err := decoder.Decode(&update); err != nil{ 
+        http.Error(w, "Invalid JSON", http.StatusBadRequest)
+        return
+    }
+
+    userID := m.App.Session.GetInt(r.Context(), "userId")
+    oldPassword := update.OldPassword
+    newPassword := update.NewPassword
+
+    log.Println(oldPassword, newPassword)
+
+    err := db.ChangePassword(userID, oldPassword, newPassword)
+
+    if err != nil {
+        return 
+    }
+
 }
