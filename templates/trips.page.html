@@ -88,6 +88,12 @@
                 }
             });
 
+            // Manejar el clic en el botón "Salir de Viaje"
+            document.getElementById('leaveTripButton').onclick = function () {
+                // Redirigir a la URL para salir del viaje
+                window.location.href = '/leave-trip/' + tripId;
+                closeModal();
+            };
             document.getElementById('goToChat').onclick = function () {
                 window.location.href = '/chat/' + tripId + '/' + userId;
             };
