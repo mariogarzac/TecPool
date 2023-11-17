@@ -21,8 +21,6 @@
         <h1 class="text-4xl font-bold">Carpool para la Universidad</h1>
         <h2 class="text-2xl mt-4">Encuentra y ofrece viajes de carpool fácil y seguro</h2>
         <div class="mt-8 space-x-4">
-            <button id="btnBuscarViaje" class="bg-green-500 hover:bg-green-600 py-2 px-6 rounded text-white">Buscar
-                Viaje</button>
             <button id="btnOfrecerViaje" class="bg-blue-500 hover:bg-blue-600 py-2 px-6 rounded text-white">Ofrecer
                 Viaje</button>
         </div>
@@ -156,25 +154,49 @@
             });
     });
 
-    document.querySelector('#btnBuscarViaje').addEventListener('click', function () {
-        document.querySelector('#buscarViajeModal').style.display = 'flex';
-    });
-    document.querySelector('#btnOfrecerViaje').addEventListener('click', function () {
-        document.querySelector('#ofrecerViajeModal').style.display = 'flex';
-    });
+    // Evento para abrir el modal "Buscar Viaje"
+    var btnBuscarViaje = document.querySelector('#btnBuscarViaje');
+    if (btnBuscarViaje) {
+        btnBuscarViaje.addEventListener('click', function () {
+            var modalBuscar = document.querySelector('#buscarViajeModal');
+            if (modalBuscar) {
+                modalBuscar.style.display = 'flex';
+            }
+        });
+    }
 
-    // Cerrar el modal al hacer clic fuera del contenido
-    document.querySelector('#buscarViajeModal').addEventListener('click', function (event) {
-        if (event.target === document.querySelector('#buscarViajeModal')) {
-            document.querySelector('#buscarViajeModal').style.display = 'none';
-        }
-    });
+    // Evento para abrir el modal "Ofrecer Viaje"
+    var btnOfrecerViaje = document.querySelector('#btnOfrecerViaje');
+    if (btnOfrecerViaje) {
+        btnOfrecerViaje.addEventListener('click', function () {
+            var modalOfrecer = document.querySelector('#ofrecerViajeModal');
+            if (modalOfrecer) {
+                modalOfrecer.style.display = 'flex';
+            }
+        });
+    }
 
-    document.querySelector('#ofrecerViajeModal').addEventListener('click', function (event) {
-        if (event.target === document.querySelector('#ofrecerViajeModal')) {
-            document.querySelector('#ofrecerViajeModal').style.display = 'none';
-        }
-    });
+    // Evento para cerrar el modal "Ofrecer Viaje" con el botón específico de cierre
+    var closeOfrecerModal = document.querySelector('#closeOfrecerModal');
+    if (closeOfrecerModal) {
+        closeOfrecerModal.addEventListener('click', function () {
+            var modalOfrecer = document.querySelector('#ofrecerViajeModal');
+            if (modalOfrecer) {
+                modalOfrecer.style.display = 'none';
+            }
+        });
+    }
+
+    // Evento para cerrar el modal "Ofrecer Viaje" al hacer clic fuera del contenido
+    var modalOfrecer = document.querySelector('#ofrecerViajeModal');
+    if (modalOfrecer) {
+        modalOfrecer.addEventListener('click', function (event) {
+            var content = modalOfrecer.querySelector('.bg-white.rounded-lg');
+            if (event.target === modalOfrecer && !content.contains(event.target)) {
+                modalOfrecer.style.display = 'none';
+            }
+        });
+    }
 
     // Evento para cerrar el pop-up de resultados de búsqueda
     document.querySelector('#closeSearchResultsPopup').addEventListener('click', function () {
