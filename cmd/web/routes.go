@@ -44,6 +44,7 @@ func routes(app *config.AppConfig, s *handlers.Hub) http.Handler {
     mux.With(IsLoggedIn).Post("/account/change-password", http.HandlerFunc(handlers.Repo.ChangePassword))
 
     mux.With(IsLoggedIn).Get("/join-trip/{tripId}", http.HandlerFunc(handlers.Repo.JoinTrip))
+    mux.With(IsLoggedIn).Get("/leave-trip/{tripId}", http.HandlerFunc(handlers.Repo.LeaveTrip))
 
     mux.With(IsLoggedIn).Handle("/ws/chat/{tripId}/{userId}", websocket.Handler(s.HandleWs))
     mux.With(IsLoggedIn).Get("/chat/{tripId}/{userId}", handlers.Repo.RenderChat)
