@@ -22,13 +22,8 @@ func (m *Repository) PostCreateTrip(w http.ResponseWriter, r *http.Request) {
     licensePlate := r.FormValue("plate")
     departureTime := r.FormValue("departure_time")
     userId := m.App.Session.GetInt(r.Context(), "userId")
-    street := r.FormValue("street")
-    number := r.FormValue("number")
-    postalCode := r.FormValue("postalCode")
 
-    startLocation := street + " " + number + ", " + postalCode
-
-    err := db.CreateTrip(carModel, licensePlate, departureTime, startLocation, userId)
+    err := db.CreateTrip(carModel, licensePlate, departureTime, userId)
     if err != nil {
         log.Fatal("Error creating trip", err)
     }
@@ -118,6 +113,26 @@ func (m *Repository) ActiveTrips(w http.ResponseWriter, r *http.Request){
     render.RenderTemplate(w, r, "trips.page.html", &models.TemplateData{
         UserTrips: userTrips,
     })
+}
+
+func (m *Repository) LeaveTrip(w http.ResponseWriter, r *http.Request) {
+    tid := chi.URLParam(r, "tripId")
+    userId := m.App.Session.GetInt(r.Context(),"userId")
+
+    tripId,err := strconv.Atoi(tid)
+    if err != nil {
+        log.Println(err)
+        return 
+    }
+
+    log.Println("Borrando", tripId, userId)
+    err = db.LeaveTrip(userId, tripId)
+    if err != nil {
+        log.Println(err)
+        return 
+    }
+
+    http.Redirect(w, r, "/trips", http.StatusSeeOther)
 }
 
 func (m *Repository) SearchTripsHandler(w http.ResponseWriter, r *http.Request) {
