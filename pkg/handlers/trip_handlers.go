@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"encoding/json"
-	"log"
-	"net/http"
-	"strconv"
-	"time"
+    "encoding/json"
+    "log"
+    "net/http"
+    "strconv"
+    "time"
 
-	"github.com/go-chi/chi"
-	"github.com/mariogarzac/tecpool/pkg/db"
-	"github.com/mariogarzac/tecpool/pkg/models"
-	"github.com/mariogarzac/tecpool/pkg/render"
+    "github.com/go-chi/chi"
+    "github.com/mariogarzac/tecpool/pkg/db"
+    "github.com/mariogarzac/tecpool/pkg/models"
+    "github.com/mariogarzac/tecpool/pkg/render"
 )
 
 func (m *Repository) CreateTrip(w http.ResponseWriter, r *http.Request) {
@@ -81,6 +81,25 @@ func (m *Repository) JoinTrip(w http.ResponseWriter, r *http.Request){
         http.Redirect(w, r, "/", http.StatusSeeOther)
         return
         // show error message
+    }
+
+    if usersInTrip := db.CountUsersInTrip(tripId); usersInTrip > 4 {
+        log.Println("The trip already has 4 users")
+
+        errorMsg := map[string]string{"error_msg": "Trip is full"}
+        jsonResponse, err := json.Marshal(errorMsg)
+
+        if err != nil {
+            http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+            return
+        }
+
+        // Set the content type to JSON
+        w.Header().Set("Content-Type", "application/json")
+
+        // Send the JSON response with a custom HTTP status code
+        http.Error(w, string(jsonResponse), http.StatusForbidden) 
+        return
     }
 
     // Add user to trip
