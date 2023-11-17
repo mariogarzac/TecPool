@@ -1,44 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login</title>
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <!-- Importar Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(to right, #bfdbfe, #3c80cf);
+        }
 
-        <script src="https://cdn.tailwindcss.com"></script>
+        .login-container {
+            transform: rotate(-15deg);
+        }
 
-    </head>
+        .login-card {
+            transform: rotate(15deg);
+            width: 350px;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
 
-    <body class="bg-gray-100">
-        <div>
-            <div class="flex items-center justify-center min-w-full min-h-screen">
+        .login-card h2 {
+            border-bottom: 1px solid #e2e8f0;
+        }
 
-                <form action="/login" method="post" class="flex flex-col md:w-1/5">
-                    <div class="text-3xl font-bold text-center">
-                        <span class="text-blue">Welcome!</span>
+        .login-card input {
+            border: 1px solid #cbd5e0;
+        }
+
+        .login-card button {
+            background-color: #f97316;
+            border-color: #f97316;
+        }
+
+        .login-card button:hover {
+            background-color: #ea580c;
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center h-screen">
+    <div class="login-container">
+        <div class="login-card bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+            <h2 class="text-2xl text-center text-gray-700 font-bold mb-4 w-full">My Account</h2>
+            <div class="w-full mt-6">
+                <form action="/login" method="post">
+                    <div class="mb-4">
+                        <input type="email" name="email" placeholder="Login" required
+                            class="w-full p-3 rounded text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     </div>
-
-                    <input 
-                    name="email"
-                    type="email"
-                    placeholder="email" 
-                    value="ivanb@mail.com"
-                    class="p-3 mt-8 rounded-md border-2 border-grey focus:outline-none focus:border-blue"/>
-
-                    <input 
-                    name="password"
-                    type="password" 
-                    placeholder="password" 
-                    value="Onfire77"
-                    class="p-3 mt-4 rounded-md border-2 border-grey focus:outline-none focus:border-blue"/>
-
-                    <button type="submit" class="p-3 mt-6 rounded-md bg-blue font-bold text:white"> login </button>
+                    <div class="mb-6">
+                        <input type="password" name="password" placeholder="Password" required
+                            class="w-full p-3 rounded text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button type="submit"
+                            class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            Sign In
+                        </button>
+                    </div>
                 </form>
             </div>
+            <a href="#" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800 mt-4">
+                Forgot Password?
+            </a>
         </div>
+    </div>
+</body>
 
-    </body>
 </html>
