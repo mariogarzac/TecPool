@@ -85,7 +85,6 @@ func (m *Repository)RenderChat(w http.ResponseWriter, r *http.Request) {
     stintMap["userId"] = uid
 
     tid,_ = strconv.Atoi(tripId)
-    messages,_ := db.LoadMessages(tid, uid)
 
     // Fetch the user's active trips
     userTrips, err := db.GetUserTrips(uid)
@@ -109,11 +108,46 @@ func (m *Repository)RenderChat(w http.ResponseWriter, r *http.Request) {
 
     render.RenderTemplate(w, r, "chat.page.html", &models.TemplateData{
         StringIntMap: stintMap,
-        Messages:     messages,
         UserTrips:    userTrips, 
         ChatName:     chatName,
         Users:        tripParticipants,
     })
+}
+
+type ChatData struct {
+    ChatName string `json:"chatName"`
+    Messages []*models.Message
+}
+
+func (m *Repository) RenderChatPage(w http.ResponseWriter, r *http.Request){
+
+    userId := chi.URLParam(r, "userId")
+    uid, _ := strconv.Atoi(userId)
+
+    tripId := chi.URLParam(r, "tripId")
+    tid, _ := strconv.Atoi(tripId)
+
+    messages, _ := db.LoadMessages(tid, uid)
+
+    chatName, _ := db.GetTripTitle(tid)
+
+    chatData := ChatData{
+        Messages: messages,
+        ChatName: chatName,
+    }
+
+
+    encodedMessages, err := json.Marshal(chatData)
+
+    if err != nil {
+        log.Println("Error encoding messages:", err)
+        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(encodedMessages)
+
 }
 
 func (s *Hub) HandleWs(ws *websocket.Conn) {
