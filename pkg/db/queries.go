@@ -291,6 +291,20 @@ func IsUserInTrip(tripId, userId int) bool {
 
     return true
 }
+
+func CountUsersInTrip(tripID int) int {
+    var numUsers int
+
+    stmt := "SELECT COUNT(user_id) AS num_users FROM trip_participants WHERE trip_id = ?"
+    row := db.QueryRow(stmt, tripID)
+
+    if err := row.Scan(&numUsers); err != nil {
+        return 0
+    }
+
+    return numUsers
+}
+
 func GetUserTrips(userId int) (map[int]*models.Trip, error){
 
     stmt := `SELECT t.trip_id, t.car_model, t.departure_time, t.user_id, t.license_plate, t.image_url
