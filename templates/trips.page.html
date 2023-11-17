@@ -3,15 +3,16 @@
 {{ define "content" }}
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
     {{ range .UserTrips }}
-
     <div class="trip-item bg-white p-2 rounded shadow-md mt-2 mb-2 flex items-center transition-transform hover:scale-105 hover:shadow-lg"
         data-trip-id="{{.TripID}}" data-user-id="{{.UserID}}" data-start-location="{{.StartLocation}}">
         <div class="mr-4">
             <img src="{{ .Image }}" alt="Car Image" class="w-12 h-12 rounded-full">
+        </div>
         <div>
             <p class="font-medium"> {{ .ChatName }} </p>
-            <p class="font-medium text-sm">{{ .CarModel }} | {{ .LicensePlate }}</p>
-            <p class="font-medium text-sm">{{ .Date }} | {{ .Time }}</p>
+            <p class="font-medium"> {{ .CarModel }} </p>
+            <p class="font-medium"> {{ .LicensePlate }} </p>
+            <p class="font-medium"> {{ .Date }} | {{ .Time }} </p>
             <p class="font-medium"> {{ .StartLocation }} </p>
         </div>
     </div>
@@ -27,10 +28,17 @@
             Regresar
         </button>
         <div id="map" class="w-full h-96 rounded-md overflow-hidden"></div>
-        <button id="goToChat" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Ir al
-            Chat</button>
+        <div class="flex justify-between items-center mt-4">
+            <!-- Botón para ir al chat -->
+            <button id="goToChat" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Ir al
+                Chat</button>
+            <!-- Botón para salir del viaje -->
+            <button id="leaveTripButton"
+                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Salir de Viaje</button>
+        </div>
     </div>
 </div>
+
 
 {{ end }}
 

@@ -1,46 +1,51 @@
 <!DOCTYPE html>
 <html lang="es">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TecPool Dashboard</title>
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TecPool Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
 
-    </head>
+</head>
 
-    <body>
+<body>
 
-        <div id="settings-popup" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center inline-block">
-            <!-- Square pop-out window -->
-            <div class="bg-white p-5 rounded">
-                <p class="text-lg font-bold">New Group Name:</p> 
-                <input type="text" value="" id="newGroupName" placeholder="New Group Name" class="border border-gray-300 p-2 mb-4 w-full">                
-                <ul class="list-none">
-                    <p class="text-lg font-bold">Participants</p> 
+    <div id="settings-popup"
+        class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center inline-block">
+        <!-- Square pop-out window -->
+        <div class="bg-white p-5 rounded">
+            <p class="text-lg font-bold">New Group Name:</p>
+            <input type="text" value="" id="newGroupName" placeholder="New Group Name"
+                class="border border-gray-300 p-2 mb-4 w-full">
+            <ul class="list-none">
+                <p class="text-lg font-bold">Participants</p>
+                <br>
+                {{ range .Users }}
+                <li class="mb-4 border-b border-gray-300 pb-2">
+                    <span class="text-m">{{ .Fname }} {{ .Lname }}</span>
                     <br>
-                    {{ range .Users }}
-                    <li class="mb-4 border-b border-gray-300 pb-2">
-                        <span class="text-m">{{ .Fname }} {{ .Lname }}</span>
-                        <br>
-                        <span class="text-gray-500">{{ .Phone }}</span>
-                    </li>
-                    {{ end }}
-                </ul>
+                    <span class="text-gray-500">{{ .Phone }}</span>
+                </li>
+                {{ end }}
+            </ul>
 
-                <button id="updateGroupNameBtn" onclick="updateGroupName()" class="mt-6 block rounded-md font-bold text-black">Submit</button>
-            </div>
-        </div> 
+            <button id="updateGroupNameBtn" onclick="updateGroupName()"
+                class="mt-6 block rounded-md font-bold text-black">Submit</button>
+        </div>
+    </div>
 
-        <div class="flex h-screen">
+    <div class="flex h-screen">
 
-            <!-- Chat sidebar -->
-            <div class="w-1/5 bg-gray-800 text-white p-5">
+        <!-- Chat sidebar -->
+        <div class="w-1/5 bg-gray-800 text-white p-5">
+            <div class="max-h-screen overflow-y-auto">
                 <ul class="space-y-4">
                     {{ range .UserTrips }}
                     <li>
-                        <button id="chatButton" onclick="getMessages({{ .TripID }}, {{ .UserID }})" class="block hover:bg-gray-700 p-1 rounded transition duration-300">
+                        <button id="chatButton" onclick="getMessages({{ .TripID }}, {{ .UserID }})"
+                            class="block hover:bg-gray-700 p-1 rounded transition duration-300">
                             <div id="sideBarTripId" tid="{{ .TripID }}"></div>
                             <div class="border border-gray-600 p-3 rounded">
                                 <span id="chatTitleSidebar" class="block text-lg">{{ .ChatName }}</span>
@@ -51,276 +56,285 @@
                     {{ end }}
                 </ul>
             </div>
-
-            <!-- chat title -->
-            <div class="flex flex-col h-screen w-4/5">
-                <div class="flex-shrink-0 bg-gray-200 p-5 text-3xl flex justify-between items-center">
-                    <span id="chatTitleTopBar"> {{ .ChatName }} </span>
-                    <!-- Settings button -->
-                    <button id="settingsButton" class="text-gray-500 hover:text-gray-700">
-                        <i data-lucide="settings"></i>
-                    </button>
-                </div>
-
-                <!-- message container -->
-                <div id="messages-container" class="flex-grow overflow-y-auto" 
-                    data-trip-id="{{ index .StringIntMap "tripId" }}"
-                    data-user-id="{{ index .StringIntMap "userId" }}"
-                    > 
-
-                </div>
-
-                    <!-- text box and send button -->
-                    <div class="flex-shrink-0 bg-gray-200 p-2 flex items-center">
-                        <input type="text" id="message-input" placeholder="Type your message" class="flex-grow px-4 py-2 mr-2 border rounded">
-                        <button id="send-button" class="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
-                    </div>
-            </div>
         </div>
 
+        <!-- chat title -->
+        <div class="flex flex-col h-screen w-4/5">
+            <div class="flex-shrink-0 bg-gray-200 p-5 text-3xl flex justify-between items-center">
+                <span id="chatTitleTopBar"> {{ .ChatName }} </span>
+                <!-- Botón para ir a la página de Viajes -->
+                <a href="/trips" class="text-gray-500 hover:text-gray-700 mr-2">
+                    <i data-lucide="arrow-left-circle"></i> Viajes
+                </a>
+                <!-- Botón de Configuración -->
+                <button id="settingsButton" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
 
-    </body>
 
-    <script>
-        // Get elements
-        const messagesContainer = document.getElementById('messages-container');
-        const userId = messagesContainer.getAttribute('data-user-id');
+            <!-- message container -->
+            <div class="flex flex-col h-screen w-4/5">
+                <div id="messages-container" class="flex-grow overflow-y-auto" ,
+                data-trip-id="{{ index .StringIntMap "tripId" }}"
+                data-user-id="{{ index .StringIntMap " userId" }}">
 
-        const sideBarTid = document.getElementById('sideBarTripId');
-        const tripId = sideBarTid ? sideBarTid.getAttribute('tid') : null;
+                </div>
+            </div>
 
-        const messageInput = document.getElementById('message-input');
-        const sendButton = document.getElementById('send-button');
 
-        // Create websocket connection
-        const socket = new WebSocket(`ws://localhost:3001/ws/chat/${tripId}/${userId}`);
+            <!-- text box and send button -->
+            <div class="flex-shrink-0 bg-gray-200 p-2 flex items-center">
+                <input type="text" id="message-input" placeholder="Type your message"
+                    class="flex-grow px-4 py-2 mr-2 border rounded">
+                <button id="send-button" class="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
+            </div>
+        </div>
+    </div>
 
-        const connectionMsg = JSON.stringify({"tripId":tripId})
 
-        function getMessages(tripId, userId) {
-            fetch(`/chat/json/${tripId}/${userId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json(); // Parse the response as JSON
-                })
-                .then(data => {
-                    console.log("received ", data)
-                    // Clear existing messages
-                    messagesContainer.innerHTML = '';
+</body>
 
-                    const chatTitleSpan = document.getElementById('chatTitleTopBar');
-                    if (data.chatName){
-                        chatTitleSpan.innerHTML = data.chatName;
-                    }
+<script>
+    // Get elements
+    const messagesContainer = document.getElementById('messages-container');
+    const userId = messagesContainer.getAttribute('data-user-id');
 
-                    // Append new messages
-                    for (var i = 0; i < data.Messages.length; i++) {
-                        handleMessage(data.Messages[i]);
-                    }
+    const sideBarTid = document.getElementById('sideBarTripId');
+    const tripId = sideBarTid ? sideBarTid.getAttribute('tid') : null;
 
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                });
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+
+    // Create websocket connection
+    const socket = new WebSocket(`ws://localhost:3001/ws/chat/${tripId}/${userId}`);
+
+    const connectionMsg = JSON.stringify({ "tripId": tripId })
+
+    function getMessages(tripId, userId) {
+        fetch(`/chat/json/${tripId}/${userId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Parse the response as JSON
+            })
+            .then(data => {
+                console.log("received ", data)
+                // Clear existing messages
+                messagesContainer.innerHTML = '';
+
+                const chatTitleSpan = document.getElementById('chatTitleTopBar');
+                if (data.chatName) {
+                    chatTitleSpan.innerHTML = data.chatName;
+                }
+
+                // Append new messages
+                for (var i = 0; i < data.Messages.length; i++) {
+                    handleMessage(data.Messages[i]);
+                }
+
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+    }
+
+    window.onload = function () {
+
+        getMessages(tripId, userId);
+    };
+
+    // Event listener for button click
+    document.getElementById('chatButton').addEventListener('click', function () {
+        // Get the tripId and userId from the clicked button
+        const tripId = this.getAttribute('data-trip-id');
+        const userId = this.getAttribute('data-user-id');
+
+        // Call getMessages function with tripId and userId
+        getMessages(tripId, userId);
+    });
+
+    const handleSend = () => {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(connectionMsg);
+        } else if (socket.readyState == WebSocket.CONNECTING) {
+            socket.addEventListener('open', () => handleSend());
         }
+    };
+    handleSend();
 
-        window.onload = function () {
+    function handleMessage(jsonMessage) {
 
-            getMessages(tripId, userId);
-        };
+        // Create a div element for the message
+        const messageElement = document.createElement('div');
 
-        // Event listener for button click
-        document.getElementById('chatButton').addEventListener('click', function () {
-            // Get the tripId and userId from the clicked button
-            const tripId = this.getAttribute('data-trip-id');
-            const userId = this.getAttribute('data-user-id');
-
-            // Call getMessages function with tripId and userId
-            getMessages(tripId, userId);
-        });
-
-        const handleSend = () => {
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(connectionMsg);
-            } else if (socket.readyState == WebSocket.CONNECTING) {
-                socket.addEventListener('open', () => handleSend());
-            } 
-        };
-        handleSend();
-
-        function handleMessage(jsonMessage) {
-
-            // Create a div element for the message
-            const messageElement = document.createElement('div');
-
-            // Check if the message is from the user or another participant
-            if (jsonMessage.self) {
-                // Style the user's messages on the right side with a blue bubble
-                messageElement.classList.add('flex', 'flex-row-reverse', 'items-end', 'mb-2', 'pt-2', 'mr-2');
-                messageElement.innerHTML = `
+        // Check if the message is from the user or another participant
+        if (jsonMessage.self) {
+            // Style the user's messages on the right side with a blue bubble
+            messageElement.classList.add('flex', 'flex-row-reverse', 'items-end', 'mb-2', 'pt-2', 'mr-2');
+            messageElement.innerHTML = `
                     <div class="bg-blue-500 text-white px-4 py-2 rounded-lg">
                     ${jsonMessage.message}
                     </div>
                     `;
-            } else {
-                // Style other participants' messages on the left side with a grey bubble
-                messageElement.classList.add('flex', 'items-start', 'mb-2', 'pt-2', 'ml-2');
-                messageElement.innerHTML = `
+        } else {
+            // Style other participants' messages on the left side with a grey bubble
+            messageElement.classList.add('flex', 'items-start', 'mb-2', 'pt-2', 'ml-2');
+            messageElement.innerHTML = `
                     <div class="bg-gray-300 text-black px-4 py-2 rounded-lg">
                     ${jsonMessage.message}
                     </div>
                     `;
-            }
-
-            // Append the message element to the messagesContainer
-            messagesContainer.appendChild(messageElement);
-
-            // Scroll the messagesContainer to the bottom to show the latest message
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Event listener for sending a message
-        sendButton.addEventListener('click', function() {
-            const message = messageInput.value;
+        // Append the message element to the messagesContainer
+        messagesContainer.appendChild(messageElement);
 
-            const messageData = {
-                userId : userId,
-                tripId: tripId,
-                message: message,
-            }
+        // Scroll the messagesContainer to the bottom to show the latest message
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
 
-            const jsonMessage = JSON.stringify(messageData)
+    // Event listener for sending a message
+    sendButton.addEventListener('click', function () {
+        const message = messageInput.value;
 
-            socket.send(jsonMessage)
+        const messageData = {
+            userId: userId,
+            tripId: tripId,
+            message: message,
+        }
 
-            messageInput.value = '';
-        });
+        const jsonMessage = JSON.stringify(messageData)
 
-        // Send message with Enter key
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendButton.click();
-            }
-        });
+        socket.send(jsonMessage)
+
+        messageInput.value = '';
+    });
+
+    // Send message with Enter key
+    messageInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendButton.click();
+        }
+    });
 
 
 
-        // Handling incoming messages
-        socket.onmessage = function (event) {
-            const jsonMessage = JSON.parse(event.data);
-            handleMessage(jsonMessage);
-        };
+    // Handling incoming messages
+    socket.onmessage = function (event) {
+        const jsonMessage = JSON.parse(event.data);
+        handleMessage(jsonMessage);
+    };
 
-        // Scroll to the bottom on page load
-        window.onload = function () {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        };
+    // Scroll to the bottom on page load
+    window.onload = function () {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
 
-        // Handling WebSocket closure
-        socket.onclose = function(event) {
-            if (event.wasClean) {
-                alert(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`);
-            } 
-        };
+    // Handling WebSocket closure
+    socket.onclose = function (event) {
+        if (event.wasClean) {
+            alert(`Connection closed cleanly, code=${event.code}, reason=${event.reason}`);
+        }
+    };
 
-        // Handling WebSocket errors
-        socket.onerror = function(error) {
-            alert(`[error] ${error.message}`);
-        };
-    </script>
+    // Handling WebSocket errors
+    socket.onerror = function (error) {
+        alert(`[error] ${error.message}`);
+    };
+</script>
 
-    <script>
-        // Show/hide the pop-out window
-        const settingsPopup = document.getElementById('settings-popup');
-        const settingsButton = document.getElementById('settingsButton');
+<script>
+    // Show/hide the pop-out window
+    const settingsPopup = document.getElementById('settings-popup');
+    const settingsButton = document.getElementById('settingsButton');
 
-        settingsButton.addEventListener('click', function () {
-            settingsPopup.classList.toggle('hidden');
-        });
+    settingsButton.addEventListener('click', function () {
+        settingsPopup.classList.toggle('hidden');
+    });
 
-        // Dismiss the pop-out window when clicking outside
-        window.addEventListener('click', function (event) {
-            if (event.target === settingsPopup) {
+    // Dismiss the pop-out window when clicking outside
+    window.addEventListener('click', function (event) {
+        if (event.target === settingsPopup) {
+            settingsPopup.classList.add('hidden');
+        }
+    });
+
+    // dismiss the pop-out windows when pressing escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const settingsPopup = document.getElementById('settings-popup');
+
+            if (settingsPopup) {
                 settingsPopup.classList.add('hidden');
             }
-        });
+        }
+    });
 
-        // dismiss the pop-out windows when pressing escape
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
+    // click the button when pressing enter
+    settingsPopup.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            const updateGroupNameBtn = document.getElementById('updateGroupNameBtn');
+            if (updateGroupNameBtn) {
+                updateGroupNameBtn.click();
+            }
+        }
+    });
+
+</script>
+
+<script>
+    function updateGroupName() {
+        const newName = document.getElementById('newGroupName').value;
+
+        if (newName == '') {
+            return
+        }
+
+        const chatTitleTopBar = document.getElementById('chatTitleTopBar');
+        const chatTitleSidebar = document.getElementById('chatTitleSidebar');
+
+        var chatId = '' + tripId;
+
+        // Send a POST request to the backend
+        fetch('/update-group-name', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "chatName": newName, "chatId": chatId }),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                //Close the pop-up on a success
                 const settingsPopup = document.getElementById('settings-popup');
+                settingsPopup.classList.add('hidden')
 
-                if (settingsPopup) {
-                    settingsPopup.classList.add('hidden');
-                }
-            }
-        });
-
-        // click the button when pressing enter
-        settingsPopup.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                const updateGroupNameBtn = document.getElementById('updateGroupNameBtn');
-                if (updateGroupNameBtn) {
-                    updateGroupNameBtn.click();
-                }
-            }
-        });
-
-    </script>
-
-    <script>
-        function updateGroupName() {
-            const newName = document.getElementById('newGroupName').value;
-
-            if (newName == '') {
-                return
-            }
-
-            const chatTitleTopBar = document.getElementById('chatTitleTopBar');
-            const chatTitleSidebar = document.getElementById('chatTitleSidebar');
-
-            var chatId = '' + tripId;
-
-            // Send a POST request to the backend
-            fetch('/update-group-name', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({"chatName": newName, "chatId": chatId}),
+                return response.json();
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
+            .then(data => {
+                // Update the chat title in the HTML
+                if (chatTitleTopBar && chatTitleTopBar) {
+                    chatTitleTopBar.textContent = data.newChatName;
+                    chatTitleSidebar.textContent = data.newChatName;
 
-                    //Close the pop-up on a success
-                    const settingsPopup = document.getElementById('settings-popup');
-                    settingsPopup.classList.add('hidden')
+                    const newGroupNameTextbox = document.getElementById('newGroupName');
+                    newGroupNameTextbox.value = '';
 
-                    return response.json();
-                })
-                .then(data => {
-                    // Update the chat title in the HTML
-                    if (chatTitleTopBar && chatTitleTopBar) {
-                        chatTitleTopBar.textContent = data.newChatName;
-                        chatTitleSidebar.textContent = data.newChatName;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle errors here
+            });
+    }    
+</script>
 
-                        const newGroupNameTextbox = document.getElementById('newGroupName');
-                        newGroupNameTextbox.value = '';
-
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    // Handle errors here
-                });
-        }    
-    </script>
-
-    <script src="https://unpkg.com/lucide@latest"> </script>
-    <script> lucide.createIcons(); </script>
+<script src="https://unpkg.com/lucide@latest"> </script>
+<script> lucide.createIcons(); </script>
 
 </html>
