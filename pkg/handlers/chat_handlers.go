@@ -114,6 +114,11 @@ func (m *Repository)RenderChat(w http.ResponseWriter, r *http.Request) {
     })
 }
 
+type ChatData struct {
+    ChatName string `json:"chatName"`
+    Messages []*models.Message
+}
+
 func (m *Repository) RenderChatPage(w http.ResponseWriter, r *http.Request){
 
     userId := chi.URLParam(r, "userId")
@@ -123,7 +128,16 @@ func (m *Repository) RenderChatPage(w http.ResponseWriter, r *http.Request){
     tid, _ := strconv.Atoi(tripId)
 
     messages, _ := db.LoadMessages(tid, uid)
-    encodedMessages, err := json.Marshal(messages)
+
+    chatName, _ := db.GetTripTitle(tid)
+
+    chatData := ChatData{
+        Messages: messages,
+        ChatName: chatName,
+    }
+
+
+    encodedMessages, err := json.Marshal(chatData)
 
     if err != nil {
         log.Println("Error encoding messages:", err)

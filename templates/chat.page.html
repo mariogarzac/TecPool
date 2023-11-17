@@ -29,7 +29,7 @@
                     {{ end }}
                 </ul>
 
-                <button id="updateGroupNameBtn" onclick="updateGroupName({{ index .StringIntMap "tripId" }})" class="mt-6 block rounded-md font-bold text-black">Submit</button>
+                <button id="updateGroupNameBtn" onclick="updateGroupName()" class="mt-6 block rounded-md font-bold text-black">Submit</button>
             </div>
         </div> 
 
@@ -40,12 +40,13 @@
                 <ul class="space-y-4">
                     {{ range .UserTrips }}
                     <li>
-                        <a href="/chat/{{ .TripID }}/{{ .UserID }}" class="block hover:bg-gray-700 p-1 rounded transition duration-300">
+                        <button id="chatButton" onclick="getMessages({{ .TripID }}, {{ .UserID }})" class="block hover:bg-gray-700 p-1 rounded transition duration-300">
+                            <div id="sideBarTripId" tid="{{ .TripID }}"></div>
                             <div class="border border-gray-600 p-3 rounded">
                                 <span id="chatTitleSidebar" class="block text-lg">{{ .ChatName }}</span>
                                 <span class="block text-sm text-gray-500"> {{ .CarModel }} | {{ .LicensePlate }}</span>
                             </div>
-                        </a>
+                        </button>
                     </li>
                     {{ end }}
                 </ul>
@@ -54,8 +55,7 @@
             <!-- chat title -->
             <div class="flex flex-col h-screen w-4/5">
                 <div class="flex-shrink-0 bg-gray-200 p-5 text-3xl flex justify-between items-center">
-                    <span id="chatTitleTopBar">{{ .ChatName }}</span>
-
+                    <span id="chatTitleTopBar"> {{ .ChatName }} </span>
                     <!-- Settings button -->
                     <button id="settingsButton" class="text-gray-500 hover:text-gray-700">
                         <i data-lucide="settings"></i>
@@ -64,9 +64,9 @@
 
                 <!-- message container -->
                 <div id="messages-container" class="flex-grow overflow-y-auto" 
-                    data-trip-id="{{ index .StringIntMap "tripId" }}" 
+                    data-trip-id="{{ index .StringIntMap "tripId" }}"
                     data-user-id="{{ index .StringIntMap "userId" }}"
-                    >
+                    > 
 
                 </div>
 
@@ -84,8 +84,10 @@
     <script>
         // Get elements
         const messagesContainer = document.getElementById('messages-container');
-        const tripId = messagesContainer.getAttribute('data-trip-id');
         const userId = messagesContainer.getAttribute('data-user-id');
+
+        const sideBarTid = document.getElementById('sideBarTripId');
+        const tripId = sideBarTid ? sideBarTid.getAttribute('tid') : null;
 
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
@@ -94,61 +96,59 @@
         const socket = new WebSocket(`ws://localhost:3001/ws/chat/${tripId}/${userId}`);
 
         const connectionMsg = JSON.stringify({"tripId":tripId})
-        const userIdContainer = document.getElementById('userid-container');
 
-        // Make a fetch request to the /chat/json endpoint
-        fetch(`/chat/json/${tripId}/${userId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json(); // Parse the response as JSON
-            })
-            .then(data => {
-                for (var i = 0; i < data.length; i++){
-                    handleMessage(data[i])
-                }
+        function getMessages(tripId, userId) {
+            fetch(`/chat/json/${tripId}/${userId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json(); // Parse the response as JSON
+                })
+                .then(data => {
+                    console.log("received ", data)
+                    // Clear existing messages
+                    messagesContainer.innerHTML = '';
 
-            })
-            .catch(error => {
-                console.error("Error:", error);
-            });
+                    const chatTitleSpan = document.getElementById('chatTitleTopBar');
+                    if (data.chatName){
+                        chatTitleSpan.innerHTML = data.chatName;
+                    }
+
+                    // Append new messages
+                    for (var i = 0; i < data.Messages.length; i++) {
+                        handleMessage(data.Messages[i]);
+                    }
+
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+        }
+
+        window.onload = function () {
+
+            getMessages(tripId, userId);
+        };
+
+        // Event listener for button click
+        document.getElementById('chatButton').addEventListener('click', function () {
+            // Get the tripId and userId from the clicked button
+            const tripId = this.getAttribute('data-trip-id');
+            const userId = this.getAttribute('data-user-id');
+
+            // Call getMessages function with tripId and userId
+            getMessages(tripId, userId);
+        });
 
         const handleSend = () => {
             if (socket.readyState === WebSocket.OPEN) {
-                socket.send(connectionMsg)
+                socket.send(connectionMsg);
             } else if (socket.readyState == WebSocket.CONNECTING) {
-                socket.addEventListener('open', () => handleSend())
+                socket.addEventListener('open', () => handleSend());
             } 
         };
-
         handleSend();
-
-
-        // Event listener for sending a message
-        sendButton.addEventListener('click', function() {
-            const message = messageInput.value;
-
-            const messageData = {
-                userId : userId,
-                tripId: tripId,
-                message: message,
-            }
-
-            const jsonMessage = JSON.stringify(messageData)
-
-            socket.send(jsonMessage)
-
-            messageInput.value = '';
-        });
-
-        // Send message with Enter key
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendButton.click();
-            }
-        });
-
 
         function handleMessage(jsonMessage) {
 
@@ -180,6 +180,32 @@
             // Scroll the messagesContainer to the bottom to show the latest message
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
+
+        // Event listener for sending a message
+        sendButton.addEventListener('click', function() {
+            const message = messageInput.value;
+
+            const messageData = {
+                userId : userId,
+                tripId: tripId,
+                message: message,
+            }
+
+            const jsonMessage = JSON.stringify(messageData)
+
+            socket.send(jsonMessage)
+
+            messageInput.value = '';
+        });
+
+        // Send message with Enter key
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+
 
         // Handling incoming messages
         socket.onmessage = function (event) {
@@ -232,6 +258,7 @@
             }
         });
 
+        // click the button when pressing enter
         settingsPopup.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 const updateGroupNameBtn = document.getElementById('updateGroupNameBtn');
@@ -243,19 +270,16 @@
 
     </script>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-
     <script>
-        lucide.createIcons();
-    </script>
-
-    <script>
-        function updateGroupName(tripId) {
+        function updateGroupName() {
             const newName = document.getElementById('newGroupName').value;
 
             if (newName == '') {
                 return
             }
+
+            const chatTitleTopBar = document.getElementById('chatTitleTopBar');
+            const chatTitleSidebar = document.getElementById('chatTitleSidebar');
 
             var chatId = '' + tripId;
 
@@ -279,13 +303,14 @@
                     return response.json();
                 })
                 .then(data => {
-
                     // Update the chat title in the HTML
-                    const chatTitleTopBar = document.getElementById('chatTitleTopBar');
-                    const chatTitleSidebar = document.getElementById('chatTitleSidebar');
                     if (chatTitleTopBar && chatTitleTopBar) {
                         chatTitleTopBar.textContent = data.newChatName;
                         chatTitleSidebar.textContent = data.newChatName;
+
+                        const newGroupNameTextbox = document.getElementById('newGroupName');
+                        newGroupNameTextbox.value = '';
+
                     }
                 })
                 .catch(error => {
@@ -295,5 +320,7 @@
         }    
     </script>
 
-</html>
+    <script src="https://unpkg.com/lucide@latest"> </script>
+    <script> lucide.createIcons(); </script>
 
+</html>
