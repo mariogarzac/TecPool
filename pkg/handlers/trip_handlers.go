@@ -22,8 +22,13 @@ func (m *Repository) PostCreateTrip(w http.ResponseWriter, r *http.Request) {
     licensePlate := r.FormValue("plate")
     departureTime := r.FormValue("departure_time")
     userId := m.App.Session.GetInt(r.Context(), "userId")
+    street := r.FormValue("street")
+    number := r.FormValue("number")
+    postalCode := r.FormValue("postalCode")
 
-    err := db.CreateTrip(carModel, licensePlate, departureTime, userId)
+    startLocation := street + " " + number + ", " + postalCode
+
+    err := db.CreateTrip(carModel, licensePlate, departureTime, startLocation, userId)
     if err != nil {
         log.Fatal("Error creating trip", err)
     }

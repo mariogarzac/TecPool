@@ -3,29 +3,97 @@
 {{ define "content" }}
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
     {{ range .UserTrips }}
-
-    <!-- /ws/chat/tripid/userid-->
-    <a href="/chat/{{.TripID}}/{{.UserID}}">
-        <div class="bg-white p-2 rounded shadow-md mt-2 mb-2 flex items-center transition-transform hover:scale-105 hover:shadow-lg">
-            <!-- Image container -->
-            <div class="mr-4">
-                <!-- la imagen viene de un api -->
-                <img src="{{ .Image }}" alt="Car Image" class="w-12 h-12 rounded-full">
-            </div>
-            <!-- Text container -->
-            <div>
-                <p class="font-medium"> {{ .CarModel }} </p>
-                <p class="font-medium"> {{ .LicensePlate }} </p>
-                <p class="font-medium"> {{ .Date }} | {{ .Time }} </p>
-            </div>
+    <div class="trip-item bg-white p-2 rounded shadow-md mt-2 mb-2 flex items-center transition-transform hover:scale-105 hover:shadow-lg"
+        data-trip-id="{{.TripID}}" data-user-id="{{.UserID}}" data-start-location="{{.StartLocation}}">
+        <div class="mr-4">
+            <img src="{{ .Image }}" alt="Car Image" class="w-12 h-12 rounded-full">
         </div>
-    </a>
-
+        <div>
+            <p class="font-medium"> {{ .CarModel }} </p>
+            <p class="font-medium"> {{ .LicensePlate }} </p>
+            <p class="font-medium"> {{ .Date }} | {{ .Time }} </p>
+            <p class="font-medium"> {{ .StartLocation }} </p>
+        </div>
+    </div>
     {{end}}
-
 </div>
-{{end}}
+
+<!-- Pop-up Contenedor con Tailwind CSS y botón de cierre -->
+<div id="tripPopup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-white p-4 rounded lg:max-w-2xl w-full">
+        <!-- Botón para cerrar el pop-up -->
+        <button onclick="closeModal()"
+            class="bg-transparent hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow">
+            Regresar
+        </button>
+        <div id="map" class="w-full h-96 rounded-md overflow-hidden"></div>
+        <button id="goToChat" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Ir al
+            Chat</button>
+    </div>
+</div>
+
+{{ end }}
 
 {{ define "js" }}
+<script>
+    let map;
+    let directionsService;
+    let directionsRenderer;
 
-{{end}}
+    // Función para cerrar el modal
+    function closeModal() {
+        document.getElementById('tripPopup').classList.add('hidden');
+    }
+
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 7,
+            center: { lat: 40.7128, lng: -74.0060 }
+        });
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+    }
+
+    document.querySelectorAll('.trip-item').forEach(item => {
+        item.addEventListener('click', function () {
+            const tripId = this.getAttribute('data-trip-id');
+            const startLocation = this.getAttribute('data-start-location');
+            const userId = this.getAttribute('data-user-id');
+
+            document.getElementById('tripPopup').classList.remove('hidden');
+
+            const start = startLocation;
+            const end = 'Av.Eugenio Garza Sada 2501 Sur, Tecnológico, 64849 Monterrey, N.L.';
+
+            directionsService.route({
+                origin: start,
+                destination: end,
+                travelMode: google.maps.TravelMode.DRIVING
+            }, function (response, status) {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+                } else {
+                    console.log(start, end)
+                    window.alert('No se pudo mostrar la ruta debido a: ' + status);
+                }
+            });
+
+            document.getElementById('goToChat').onclick = function () {
+                window.location.href = '/chat/' + tripId + '/' + userId;
+            };
+
+        });
+
+    });
+</script>
+{{ end }}
+
+<!-- Agregar el script de Google Maps -->
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjkP7FZPBjFtz1v1wZPS45HZYGW_hJ-X8&callback=initMap"
+    type="text/javascript"></script>
+
+<!-- Enlace de Tailwind CSS -->
+<link href="https://cdn.tailwindcss.com" rel="stylesheet">
