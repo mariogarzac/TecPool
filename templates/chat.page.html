@@ -67,29 +67,14 @@
                     data-trip-id="{{ index .StringIntMap "tripId" }}" 
                     data-user-id="{{ index .StringIntMap "userId" }}"
                     >
-                    {{ range .Messages }}
-                    {{ if .Self }}
-                    <div class="flex flex-row-reverse items-end mb-2 pt-2 mr-2">
-                        <div class="bg-blue-500 text-white px-4 py-2 rounded-lg">
-                            {{ .Message }}
-                        </div>
-                    </div>
-                    {{ else }}
-                    <div class="flex items-start mb-2 pt-2 ml-2">
-                        <div class="bg-gray-300 text-black px-4 py-2 rounded-lg">
-                            {{ .Message }}
-                        </div>
-                    </div>
-                    {{ end }}
 
-                    {{ end }}
                 </div>
 
-                <!-- text box and send button -->
-                <div class="flex-shrink-0 bg-gray-200 p-2 flex items-center">
-                    <input type="text" id="message-input" placeholder="Type your message" class="flex-grow px-4 py-2 mr-2 border rounded">
-                    <button id="send-button" class="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
-                </div>
+                    <!-- text box and send button -->
+                    <div class="flex-shrink-0 bg-gray-200 p-2 flex items-center">
+                        <input type="text" id="message-input" placeholder="Type your message" class="flex-grow px-4 py-2 mr-2 border rounded">
+                        <button id="send-button" class="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
+                    </div>
             </div>
         </div>
 
@@ -109,6 +94,25 @@
         const socket = new WebSocket(`ws://localhost:3001/ws/chat/${tripId}/${userId}`);
 
         const connectionMsg = JSON.stringify({"tripId":tripId})
+        const userIdContainer = document.getElementById('userid-container');
+
+        // Make a fetch request to the /chat/json endpoint
+        fetch(`/chat/json/${tripId}/${userId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Parse the response as JSON
+            })
+            .then(data => {
+                for (var i = 0; i < data.length; i++){
+                    handleMessage(data[i])
+                }
+
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
 
         const handleSend = () => {
             if (socket.readyState === WebSocket.OPEN) {
@@ -145,9 +149,8 @@
             }
         });
 
-        // Handling incoming messages
-        socket.onmessage = function(event) {
-            const jsonMessage = JSON.parse(event.data);
+
+        function handleMessage(jsonMessage) {
 
             // Create a div element for the message
             const messageElement = document.createElement('div');
@@ -176,6 +179,12 @@
 
             // Scroll the messagesContainer to the bottom to show the latest message
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Handling incoming messages
+        socket.onmessage = function (event) {
+            const jsonMessage = JSON.parse(event.data);
+            handleMessage(jsonMessage);
         };
 
         // Scroll to the bottom on page load
@@ -241,8 +250,6 @@
     </script>
 
     <script>
-
-
         function updateGroupName(tripId) {
             const newName = document.getElementById('newGroupName').value;
 
