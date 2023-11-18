@@ -1,65 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
 
-{{template "base" .}}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Page</title>
+    <!-- Importar Tailwind CSS desde CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-{{define "content"}}
-<div class="container">
-    <div class="row mt-3">
-        <div class="col">
-            <h1>Register</h1>
-
-            <form action="/register" method="post" novalidate class="needs-validation">
-
-                <div class="form-row">
-                    <div class="col">
-                        <div class="form-row" id="login">
-                            <div class="col-md-6">
-                                <label for="fname">First name:</label>
-                                <input required class ="form-control" type="text" name="fname" required>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="lname">Last name::</label>
-                                <input required class ="form-control" type="text" name="lname" required>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="password">Password:</label>
-                                <input required class ="form-control" type="password" name="password" required>
-
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="phone_number">Phone Number:</label>
-                                <input required class ="form-control" type="text" name="phone_number" required>
-
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="email">Email Address:</label>
-                                <input required class ="form-control" type="email" name="email" required>
-
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="dob">Date of Birth:</label>
-                                <input required class ="form-control" type="date" name="dob" required>
-
-                            </div>
-
-                        </div>
-                    </div>
+<body class="bg-gradient-to-r from-cyan-500 to-blue-500 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg z-10">
+        <div class="text-center">
+            <h2 class="mt-6 text-3xl font-bold text-gray-900">
+                Register
+            </h2>
+        </div>
+        <form class="mt-8 space-y-6" action="/register" method="post" novalidate>
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label for="fname" class="sr-only">First Name</label>
+                    <input id="fname" name="fname" type="text" autocomplete="fname" required
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="First Name">
                 </div>
 
-                {{index .StringMap "error_msg"}}
+                <div>
+                    <label for="lname" class="sr-only">Last Name</label>
+                    <input id="lname" name="lname" type="text" autocomplete="lname" required
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="Last Name">
+                </div>
 
-                <hr>
+                <div>
+                    <label for="password" class="sr-only">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="Password">
+                </div>
 
-                <button type="submit" class="btn btn-primary">Register</button>
-            </form>
+                <div>
+                    <label for="phone_number" class="sr-only">Phone Number</label>
+                    <input id="phone_number" name="phone_number" type="text" autocomplete="phone_number" required
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="Phone Number">
+                </div>
 
-        </div>
+                <div>
+                    <label for="email-address" class="sr-only">Email address</label>
+                    <input id="email-address" name="email" type="email" autocomplete="email" required
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="Email address">
+                </div>
+
+                <div>
+                    <label for="dob" class="sr-only">Date of Birth</label>
+                    <input id="dob" name="dob" type="date" autocomplete="dob" required
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="Date of Birth">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center">
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Register
+                </button>
+            </div>
+        </form>
     </div>
-</div>
+</body>
 
-{{end}}
-
+</html>
